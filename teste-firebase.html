@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Teste Firebase</title>
+</head>
+<body>
+
+<button onclick="gravar()">
+Testar Firebase
+</button>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+
+import {
+collection,
+addDoc
+}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+async function gravar(){
+
+try{
+
+await addDoc(
+collection(db,"teste"),
+{
+nome:"Eliane",
+data:new Date().toISOString()
+}
+);
+
+alert("Gravou no Firebase!");
+
+}catch(erro){
+
+console.error(erro);
+alert("Erro ao gravar");
+
+}
+
+}
+
+window.gravar = gravar;
+
+</script>
+
+</body>
+</html>
