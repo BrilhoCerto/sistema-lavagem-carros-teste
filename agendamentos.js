@@ -607,11 +607,6 @@ agendamentos.push(novo);
   
 await addDoc(collection(db, "agendamentos"), novo);
 
-localStorage.setItem(
-"agendamentos",
-JSON.stringify(agendamentos)
-);
-
 atualizarCalendario();
 
 mostrarAgendamentosDoDia(data);
@@ -740,11 +735,6 @@ servicos
 
 };
 
-localStorage.setItem(
-"agendamentos",
-JSON.stringify(agendamentos)
-);
-
 atualizarCalendario();
 
 mostrarAgendamentosDoDia(data);
@@ -793,10 +783,6 @@ agendamentos.filter(
 a => a.id !== agendamentoEditando
 );
 
-localStorage.setItem(
-"agendamentos",
-JSON.stringify(agendamentos)
-);
 
 atualizarCalendario();
 
