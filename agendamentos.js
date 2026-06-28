@@ -603,9 +603,12 @@ servicos
 
 };
 
-agendamentos.push(novo);
-  
-await addDoc(collection(db, "agendamentos"), novo);
+await addDoc(
+    collection(db, "agendamentos"),
+    novo
+);
+
+await carregarAgendamentosFirebase();
 
 atualizarCalendario();
 
