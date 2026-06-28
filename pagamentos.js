@@ -156,39 +156,25 @@ function carregarServicosHoje() {
             p => String(p.agendamentoId) === String(item.id)
         );
 
-        if(pagamento){
+       if (pagamento) {
 
-            if(String(pagamento.status).startsWith("Pago")){
+    const status = String(pagamento.status || "").toLowerCase();
 
-                indicador = "🟢 ";
+    if (status.includes("gratuita")) {
 
-            }else if(
-                String(pagamento.status)
-                .toLowerCase()
-                .includes("multibanco")
-            ){
+        indicador = "🔵 ";
 
-                indicador = "🟡 ";
+    } else if (!status.startsWith("pago")) {
 
-            }else if(
-                String(pagamento.status)
-                .toLowerCase()
-                .includes("pendente")
-            ){
+        indicador = "🔴 ";
 
-                indicador = "🔴 ";
+    } else {
 
-            }else if(
-                String(pagamento.status)
-                .toLowerCase()
-                .includes("gratuita")
-            ){
+        indicador = "🟢 ";
 
-                indicador = "🔵 ";
+    }
 
-            }
-
-        }
+}
 
         lista.innerHTML +=
 
