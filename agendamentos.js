@@ -383,13 +383,12 @@ Array.isArray(item.servicos)
 (item.observacoes
 ? "\nObs: " + item.observacoes
 : ""),
-    start: ${item.data}T${item.hora}:00,
+    start: item.data + "T" + item.hora,
 
 end: item.data && item.hora
     ? new Date(
-        new Date(${item.data}T${item.hora}:00)
-        .getTime() + (15 * 60000)
-      )
+        new Date(item.data + "T" + item.hora).getTime() + (15 * 60000)
+      ).toISOString()
     : null,
 
     extendedProps: {
