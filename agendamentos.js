@@ -28,19 +28,11 @@ async function carregarAgendamentosFirebase() {
     console.log("Carregando agendamentos do Firebase...");
     );
 
-    snapshot.forEach((doc) => {
+   snapshot.forEach((doc) => {
 
-        const item = doc.data();
+    agendamentos.push(doc.data());
 
-        const existe = agendamentos.some(
-            a => String(a.id) === String(item.id)
-        );
-
-        if(!existe){
-            agendamentos.push(item);
-        }
-
-    });
+});
 
     console.log(
         "TOTAL AGENDAMENTOS:",
