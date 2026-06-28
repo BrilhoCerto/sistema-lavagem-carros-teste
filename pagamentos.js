@@ -87,8 +87,10 @@ async function carregarPagamentosFirebase(){
 
 /* SERVIÇOS DO DIA */
 function carregarServicosHoje() {
-
-    alert("Entrou em carregarServicosHoje");
+ console.log("Entrou em carregarServicosHoje");
+    //alert("Entrou em carregarServicosHoje");
+    const servicosPendentes = 
+        console.log(servicosPendentes);
     
 //console.log("AGENDAMENTOS:", agendamentos);
 //console.log("PAGAMENTOS:", pagamentos);
