@@ -24,10 +24,9 @@ async function carregarAgendamentosFirebase() {
 
     const snapshot =
     await getDocs(collection(db, "agendamentos"));
-
-    console.log(
-        "LOCALSTORAGE:",
-        agendamentos.length
+    agendamentos = [];
+    
+    console.log("Carregando agendamentos do Firebase...");
     );
 
     snapshot.forEach((doc) => {
