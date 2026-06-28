@@ -13,8 +13,7 @@ from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 let calendario;
 
-let agendamentos =
-JSON.parse(localStorage.getItem("agendamentos")) || [];
+let agendamentos = [];
 
 let agendamentoEditando = null;
 
