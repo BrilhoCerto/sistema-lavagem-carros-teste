@@ -27,7 +27,7 @@ async function carregarAgendamentosFirebase() {
     agendamentos = [];
     
     console.log("Carregando agendamentos do Firebase...");
-    );
+
 
    snapshot.forEach((doc) => {
 
