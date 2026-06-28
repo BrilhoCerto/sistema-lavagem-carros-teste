@@ -627,7 +627,7 @@ limparFormulario();
 
 document
 .getElementById("btnAtualizar")
-.addEventListener("click", function(){
+.addEventListener("click", async function(){
 
 if(!agendamentoEditando){
 return;
@@ -700,7 +700,31 @@ a => a.id === agendamentoEditando
 if(indice === -1){
 return;
 }
+const q = query(
+    collection(db, "agendamentos"),
+    where("id", "==", agendamentoEditando)
+);
 
+const snapshot = await getDocs(q);
+
+if (snapshot.empty) {
+    alert("Agendamento não encontrado.");
+    return;
+}
+
+const documento = snapshot.docs[0];
+
+await updateDoc(documento.ref, {
+    cliente,
+    telefone,
+    modelo,
+    data,
+    hora,
+    valor,
+    observacoes,
+    servicos
+});
+    
 agendamentos[indice] = {
 
 id: agendamentoEditando,
