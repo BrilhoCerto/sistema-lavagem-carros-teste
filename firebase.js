@@ -2,12 +2,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBTcZr1ZLw0bZJpU9RNEuB2Kh4jPjD-L_E",
-  authDomain: "brilho-certo.firebaseapp.com",
-  projectId: "brilho-certo",
-  storageBucket: "brilho-certo.firebasestorage.app",
-  messagingSenderId: "129494576426",
-  appId: "1:29494576426:web:ee67d9d2ab568efc5b1cd3"
+  apiKey: "AIzaSyBfiaTejThSwa_uS84xPQuFEf3aweRIs_4",
+  authDomain: "brilho-certo-teste.firebaseapp.com",
+  projectId: "brilho-certo-teste",
+  storageBucket: "brilho-certo-teste.firebasestorage.app",
+  messagingSenderId: "791610111918",
+  appId: "1:791610111918:web:4e6f907017214bf6c23a3f"
 };
 
 const app = initializeApp(firebaseConfig);
