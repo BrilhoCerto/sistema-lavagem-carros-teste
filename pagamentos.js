@@ -88,65 +88,34 @@ async function carregarPagamentosFirebase(){
 /* SERVIÇOS DO DIA */
 function carregarServicosHoje() {
 
-    alert("Entrou em carregarServicosHoje");
-    
-//console.log("AGENDAMENTOS:", agendamentos);
-//console.log("PAGAMENTOS:", pagamentos);
-//console.log("HOJE:", hoje);
+    agendamentos =
+    JSON.parse(localStorage.getItem("agendamentos")) || [];
 
+    pagamentos =
+    JSON.parse(localStorage.getItem("pagamentos")) || [];
 
-// Atualiza os dados mais recentes
-agendamentos =
-JSON.parse(localStorage.getItem("agendamentos")) || [];
-
-    agendamentos.forEach(item => {
-    console.log(
-        "Data do agendamento:",
-        item.data,
-        "| Cliente:",
-        item.cliente
-    );
-});
-    
-pagamentos =
-JSON.parse(localStorage.getItem("pagamentos")) || [];
-
-console.log("AGENDAMENTOS:", agendamentos);
-console.log("PAGAMENTOS:", pagamentos);
-    
-const hoje =
-new Date()
-.toISOString()
-.split("T")[0];
-  console.log("Hoje:", hoje);
-
-
-alert(
-"Agendamentos: " +
-agendamentos.length +
-" | Pagamentos: " +
-pagamentos.length
-); 
     const lista =
     document.getElementById("listaServicosHoje");
 
+    if (!lista) {
+        return;
+    }
+
     const agendamentosPagos =
-new Set(
-    pagamentos
-    .filter(p => String(p.status || "").startsWith("Pago"))
-    .map(p => String(p.agendamentoId))
-);
+    new Set(
+        pagamentos
+        .filter(p => String(p.status || "").startsWith("Pago"))
+        .map(p => String(p.agendamentoId))
+    );
 
-   const servicosPendentes =
-agendamentos
-.filter(item =>
-
-    !agendamentosPagos.has(
-    String(item.id || item.firebaseId)
-)
-
-)
-.sort((a,b)=>{
+    const servicosPendentes =
+    agendamentos
+    .filter(item =>
+        !agendamentosPagos.has(
+            String(item.id || item.firebaseId)
+        )
+    )
+    .sort((a,b)=>{
 
         const dataA =
         new Date(a.data + "T" + a.hora);
@@ -157,7 +126,7 @@ agendamentos
         return dataA - dataB;
 
     });
-    console.log("SERVICOS PENDENTES", servicosPendentes);
+
     if(servicosPendentes.length === 0){
 
         lista.innerHTML =
@@ -172,13 +141,55 @@ agendamentos
     servicosPendentes.forEach(item=>{
 
         if(
-    !item ||
-    !item.cliente ||
-    !item.data ||
-    !item.hora
-){
-    return;
-}
+            !item ||
+            !item.cliente ||
+            !item.data ||
+            !item.hora
+        ){
+            return;
+        }
+
+        let indicador = "";
+
+        const pagamento =
+        pagamentos.find(
+            p => String(p.agendamentoId) === String(item.id)
+        );
+
+        if(pagamento){
+
+            if(String(pagamento.status).startsWith("Pago")){
+
+                indicador = "🟢 ";
+
+            }else if(
+                String(pagamento.status)
+                .toLowerCase()
+                .includes("multibanco")
+            ){
+
+                indicador = "🟡 ";
+
+            }else if(
+                String(pagamento.status)
+                .toLowerCase()
+                .includes("pendente")
+            ){
+
+                indicador = "🔴 ";
+
+            }else if(
+                String(pagamento.status)
+                .toLowerCase()
+                .includes("gratuita")
+            ){
+
+                indicador = "🔵 ";
+
+            }
+
+        }
+
         lista.innerHTML +=
 
         '<div class="item-servico" onclick="selecionarAgendamento(\'' +
@@ -197,16 +208,9 @@ agendamentos
 
         ' | ' +
 
-        (pagamentos.some(
-    p =>
-    String(p.agendamentoId) === String(item.id)
-    &&
-    String(p.status || "").startsWith("Pago")
-)
-? "🔴 "
-: "") +
+        indicador +
 
-item.cliente +
+        item.cliente +
 
         ' | ' +
 
@@ -214,7 +218,7 @@ item.cliente +
 
         ' | € ' +
 
-        (item.valor || 0) +
+        Number(item.valor || 0).toFixed(2) +
 
         '</div>';
 
