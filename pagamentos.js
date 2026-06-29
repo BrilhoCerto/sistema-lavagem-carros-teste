@@ -7,6 +7,7 @@ getDocs,
 query,
 where,
 deleteDoc,
+updateDoc,
 doc
 }
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -352,18 +353,35 @@ document
 
     if(indicePendente !== -1){
 
-        pagamentos[indicePendente] = pagamento;
+    const pagamentoExistente = pagamentos[indicePendente];
 
-    }else{
+    pagamentos[indicePendente] = {
+        ...pagamentoExistente,
+        ...pagamento
+    };
 
-        pagamentos.push(pagamento);
+    if (pagamentoExistente.firebaseId) {
 
-        await addDoc(
-            collection(db, "pagamentos"),
-            pagamento
+        await updateDoc(
+            doc(db, "pagamentos", pagamentoExistente.firebaseId),
+            pagamentos[indicePendente]
         );
 
     }
+
+}else{
+
+    const novoDoc = await addDoc(
+        collection(db, "pagamentos"),
+        pagamento
+    );
+
+    pagamentos.push({
+        ...pagamento,
+        firebaseId: novoDoc.id
+    });
+
+}
 
     localStorage.setItem(
         "pagamentos",
