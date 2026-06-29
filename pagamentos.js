@@ -88,16 +88,7 @@ async function carregarPagamentosFirebase(){
 /* SERVIÇOS DO DIA */
 function carregarServicosHoje() {
  console.log("Entrou em carregarServicosHoje");
-    //alert("Entrou em carregarServicosHoje");
-    const servicosPendentes = 
-        console.log(servicosPendentes);
-    
-//console.log("AGENDAMENTOS:", agendamentos);
-//console.log("PAGAMENTOS:", pagamentos);
-//console.log("HOJE:", hoje);
-
-
-// Atualiza os dados mais recentes
+   
 agendamentos =
 JSON.parse(localStorage.getItem("agendamentos")) || [];
 
@@ -221,7 +212,7 @@ item.cliente +
         '</div>';
 
     });
-
+}
 /*  AGENDAMENTO */
 
 function selecionarAgendamento(id) {
