@@ -190,14 +190,13 @@ agendamentos
 
         ' | ' +
 
-        (pagamentos.some(
+       (pagamentos.some(
     p =>
-    String(p.agendamentoId) === String(item.id)
-    &&
-    String(p.status || "").startsWith("Pago")
-)
-? "🔴 "
-: "") +
+    String(p.agendamentoId) === String(item.id) &&
+    String(p.status || "").toLowerCase().includes("pendente")
+    )
+    ? "🔴 "
+    : "") +
 
 item.cliente +
 
