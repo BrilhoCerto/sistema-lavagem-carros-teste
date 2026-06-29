@@ -129,6 +129,27 @@ border-radius:8px;
 font-size:13px;
 }
 
+/* PAGAMENTOS REGISTRADOS */
+
+.item-pagamento{
+
+padding:6px 10px;
+border-bottom:1px solid #eee;
+font-size:13px;
+line-height:1.2;
+
+}
+
+/* RECEBIDOS DO MÊS */
+
+.item-recebido{
+padding:6px 10px;
+border-bottom:1px solid #eee;
+font-size:13px;
+line-height:1.2;
+
+}
+
 /* RESPONSIVO */
 
 @media(max-width:768px){
