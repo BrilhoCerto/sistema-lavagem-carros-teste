@@ -581,20 +581,28 @@ if (filtro && !filtro.dataset.evento) {
     if(!lista){
         return;
     }
+const filtroData =
+document.getElementById("filtroDataPagamento")?.value;
 
+if(!filtroData){
+
+    lista.innerHTML =
+    "<p>Selecione uma data para visualizar os pagamentos.</p>";
+
+    return;
+
+}
     const hoje =
     new Date()
     .toISOString()
     .split("T")[0];
 
-  const filtroData =
-document.getElementById("filtroDataPagamento")?.value;
-
+ 
 const hojePagos =
 pagamentos.filter(
     p =>
-        String(p.status || "").startsWith("Pago")&&
-        (!filtroData || p.data === filtroData)
+        String(p.status || "").startsWith("Pago") &&
+        p.data === filtroData
 );
 
 console.log("Pagamentos:", pagamentos);
