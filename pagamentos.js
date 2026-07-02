@@ -274,9 +274,10 @@ document
    const dataRecebimento =
     document.getElementById("dataRecebimento").value;
 
-if (!dataRecebimento) {
-    alert("Informe a data do pagamento.");
-    document.getElementById("dataRecebimento").focus();
+console.log("Data recebida:", dataRecebimento);
+
+if (dataRecebimento === "") {
+    alert("A data do pagamento é obrigatória.");
     return;
 }
 
