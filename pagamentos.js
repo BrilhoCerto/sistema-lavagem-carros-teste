@@ -263,9 +263,7 @@ document
     }
 
     const valor =
-    parseFloat(
-        document.getElementById("valor").value
-    );
+    parseFloat(document.getElementById("valor").value
 
     const formaPagamento =
     document.getElementById("formaPagamento").value;
@@ -273,35 +271,28 @@ document
     const status =
     document.getElementById("status").value;
 
-    const dataRecebimento =
-    document.getElementById("dataRecebimento").value
-    ||
-    new Date()
-    .toISOString()
-    .split("T")[0];
+   const dataRecebimento =
+    document.getElementById("dataRecebimento").value;
 
-    if(isNaN(valor) || valor <= 0){
+if (!dataRecebimento) {
+    alert("Informe a data do pagamento.");
+    document.getElementById("dataRecebimento").focus();
+    return;
+}
 
+if(isNaN(valor) || valor <= 0){
         alert("Informe um valor válido.");
-
         return;
-
     }
 
-    if(!formaPagamento){
-
+if(!formaPagamento){
         alert("Selecione a forma de pagamento.");
-
         return;
-
     }
 
-    if(!status){
-
+if(!status){
         alert("Selecione o status.");
-
         return;
-
     }
 
     if(!confirm("Tem certeza que deseja registar este pagamento?")){
