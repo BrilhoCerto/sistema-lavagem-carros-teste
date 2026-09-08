@@ -75,4 +75,27 @@ item.style.display = "none";
 
 }
 
+/* MENU IMO - SOMENTE ADMINISTRADOR E SAMUEL */
+
+function aplicarPermissaoIMO(){
+
+    const perfil = localStorage.getItem("perfil");
+    const utilizador = localStorage.getItem("utilizador");
+
+    const podeAcessarIMO =
+        perfil === "administrador" ||
+        utilizador === "Samuel";
+
+    if(!podeAcessarIMO){
+
+        document
+        .querySelectorAll(".menu-imo")
+        .forEach(item => {
+            item.style.display = "none";
+        });
+
+    }
+  aplicarPermissaoIMO();
+}
+
 }
