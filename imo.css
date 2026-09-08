@@ -1,0 +1,504 @@
+/* =========================================================
+   BRILHO CERTO - IMO
+   Estilo do módulo de Fechamento e Depósitos
+========================================================= */
+
+
+/* =========================================================
+   CONFIGURAÇÃO GERAL
+========================================================= */
+
+body {
+    background: #eef3f8;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    color: #1f2937;
+}
+
+
+/* =========================================================
+   MENU LATERAL
+========================================================= */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+
+    width: 260px;
+    height: 100vh;
+
+    background: #0d6efd;
+
+    padding: 20px;
+
+    color: #ffffff;
+
+    overflow-y: auto;
+}
+
+
+.sidebar h3 {
+    font-weight: bold;
+    margin-bottom: 25px;
+}
+
+
+/* BOTÕES DO MENU */
+
+.menu-btn {
+    width: 100%;
+
+    margin-bottom: 10px;
+
+    border: none;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #0d6efd;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.menu-btn:hover {
+    background: #dbeafe;
+}
+
+
+/* MENU ATIVO */
+
+.menu-btn.ativo {
+    background: #dbeafe;
+    color: #0d6efd;
+}
+
+
+/* =========================================================
+   CONTEÚDO PRINCIPAL
+========================================================= */
+
+.content {
+    margin-left: 280px;
+
+    padding: 20px;
+
+    min-height: 100vh;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.page-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+
+.page-header h2 {
+    margin: 0;
+}
+
+
+.page-header p {
+    margin: 5px 0 0;
+
+    color: #64748b;
+}
+
+
+/* =========================================================
+   ABAS DO IMO
+========================================================= */
+
+.tabs-imo {
+    display: flex;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+
+    margin-bottom: 20px;
+}
+
+
+.tab-btn {
+    border: none;
+
+    background: #ffffff;
+
+    color: #0d6efd;
+
+    padding: 12px 18px;
+
+    border-radius: 10px;
+
+    font-weight: bold;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+
+.tab-btn:hover {
+    background: #dbeafe;
+}
+
+
+.tab-btn.ativo {
+    background: #0d6efd;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   CONTEÚDO DAS ABAS
+========================================================= */
+
+.tab-content {
+    display: none;
+}
+
+
+.tab-content.ativo {
+    display: block;
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.card-dashboard {
+    background: #ffffff;
+
+    padding: 20px;
+
+    border-radius: 15px;
+
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   CARDS DE RESUMO
+========================================================= */
+
+.summary-card {
+    background: #ffffff;
+
+    padding: 18px;
+
+    border-radius: 15px;
+
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.07);
+
+    height: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.summary-card span {
+    color: #64748b;
+
+    font-size: 15px;
+}
+
+
+.summary-card strong {
+    font-size: 24px;
+}
+
+
+/* CARD DE DESTAQUE */
+
+.summary-card.destaque {
+    border-left: 5px solid #198754;
+}
+
+
+/* =========================================================
+   TÍTULOS DAS SECÇÕES
+========================================================= */
+
+.section-title {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 15px;
+}
+
+
+.section-title h4 {
+    margin: 0;
+}
+
+
+/* =========================================================
+   FORMULÁRIOS
+========================================================= */
+
+.form-label {
+    font-weight: bold;
+}
+
+
+.form-control {
+    border-radius: 8px;
+}
+
+
+.form-control:focus {
+    border-color: #0d6efd;
+
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+
+/* =========================================================
+   CAMPO TOTAL
+========================================================= */
+
+.total-readonly {
+    font-weight: bold;
+
+    background: #f1f5f9;
+}
+
+
+/* =========================================================
+   FILTRO DE DATA
+========================================================= */
+
+.filtro-data {
+    max-width: 190px;
+}
+
+
+/* =========================================================
+   TABELAS
+========================================================= */
+
+.table {
+    margin-bottom: 0;
+}
+
+
+.table td,
+.table th {
+    white-space: nowrap;
+
+    vertical-align: middle;
+}
+
+
+.table thead th {
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   BOTÕES DE AÇÃO
+========================================================= */
+
+.acao-btn {
+    margin-right: 5px;
+
+    margin-bottom: 4px;
+}
+
+
+/* =========================================================
+   VALORES
+========================================================= */
+
+.valor-positivo {
+    color: #198754;
+
+    font-weight: bold;
+}
+
+
+.valor-negativo {
+    color: #dc3545;
+
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   TABELA VAZIA
+========================================================= */
+
+.vazio {
+    padding: 20px;
+
+    text-align: center;
+
+    color: #64748b;
+}
+
+
+/* =========================================================
+   TEXTO AUXILIAR
+========================================================= */
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+
+/* =========================================================
+   BOTÕES BOOTSTRAP
+========================================================= */
+
+.btn {
+    border-radius: 8px;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .sidebar {
+
+        position: relative;
+
+        width: 100%;
+
+        height: auto;
+
+        padding: 10px;
+
+    }
+
+
+    .menu-btn {
+
+        margin-bottom: 5px;
+
+        font-size: 14px;
+
+    }
+
+
+    .content {
+
+        margin-left: 0;
+
+        padding: 10px;
+
+    }
+
+
+    .section-title {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+
+    .filtro-data {
+
+        max-width: 100%;
+
+        width: 100%;
+
+    }
+
+
+    .summary-card strong {
+
+        font-size: 20px;
+
+    }
+
+
+    .table {
+
+        font-size: 13px;
+
+    }
+
+
+    .tabs-imo {
+
+        flex-direction: column;
+
+    }
+
+
+    .tab-btn {
+
+        width: 100%;
+
+        text-align: left;
+
+    }
+
+}
+
+
+/* =========================================================
+   ECRÃS MUITO PEQUENOS
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .page-header h2 {
+
+        font-size: 22px;
+
+    }
+
+
+    .card-dashboard {
+
+        padding: 15px;
+
+    }
+
+
+    .summary-card {
+
+        padding: 15px;
+
+    }
+
+}
