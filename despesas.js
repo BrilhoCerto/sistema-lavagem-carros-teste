@@ -166,8 +166,13 @@ onSnapshot(
         despesas =
         snapshot.docs.map(item=>({
 
-            id:item.id,
-            ...item.data()
+            ...item.data(),
+
+            // IMPORTANTE:
+            // usar o ID REAL do documento do Firestore.
+            // Alguns registros antigos possuem também
+            // um campo "id" dentro dos próprios dados.
+            id:item.id
 
         }));
 
@@ -620,6 +625,7 @@ function atualizarResumo(){
 
     definirTexto(
         "despesasHoje",
+        "Hoje: " +
         formatarEuro(totalHoje)
     );
 
@@ -632,18 +638,7 @@ function atualizarResumo(){
 
 function atualizarVisao(){
 
-    const elemento =
-    document.getElementById(
-        "resumoCategorias"
-    );
-
-    if(!elemento){
-        return;
-    }
-
-
-    const totais = {};
-
+    const categorias = {};
 
     despesas.forEach(item=>{
 
@@ -654,51 +649,111 @@ function atualizarVisao(){
         const valor =
         Number(item.valor || 0);
 
-        totais[categoria] =
-        (totais[categoria] || 0) +
-        valor;
+        if(!categorias[categoria]){
+            categorias[categoria] = 0;
+        }
+
+        categorias[categoria] += valor;
 
     });
 
 
-    const categorias =
-    Object.entries(totais)
+    const container =
+    document.getElementById(
+        "resumoCategorias"
+    );
+
+
+    const entradas =
+    Object.entries(categorias)
     .sort((a,b)=>b[1]-a[1]);
 
 
-    if(!categorias.length){
+    if(!entradas.length){
 
-        elemento.innerHTML =
-        `
-            <div class="estado-vazio">
-                Nenhuma despesa registada.
+        container.innerHTML =
+        `<div class="estado-vazio">
+            Ainda não existem despesas registadas.
+        </div>`;
+
+    }else{
+
+        container.innerHTML =
+        entradas
+        .map(item=>`
+
+            <div class="linha-resumo">
+
+                <span>
+                    ${escaparHTML(item[0])}
+                </span>
+
+                <strong>
+                    ${formatarEuro(item[1])}
+                </strong>
+
             </div>
-        `;
+
+        `)
+        .join("");
+
+    }
+
+
+    /* ÚLTIMAS DESPESAS */
+
+    const ultimas =
+    [...despesas]
+    .sort(
+        (a,b)=>
+        obterDataOrdenacao(b) -
+        obterDataOrdenacao(a)
+    )
+    .slice(0,5);
+
+
+    const ultimasContainer =
+    document.getElementById(
+        "ultimasDespesas"
+    );
+
+
+    if(!ultimas.length){
+
+        ultimasContainer.innerHTML =
+        `<div class="estado-vazio">
+            Ainda não existem despesas registadas.
+        </div>`;
 
         return;
 
     }
 
 
-    elemento.innerHTML =
-    categorias
-    .map(([categoria,valor])=>{
+    ultimasContainer.innerHTML =
+    ultimas
+    .map(item=>`
 
-        return `
-            <div class="linha-resumo">
+        <div class="linha-resumo">
 
-                <span>
-                    ${escaparHTML(categoria)}
-                </span>
+            <span>
+                ${escaparHTML(
+                    item.descricao ||
+                    item.observacoes ||
+                    item.subcategoria ||
+                    "Despesa"
+                )}
+            </span>
 
-                <strong>
-                    ${formatarEuro(valor)}
-                </strong>
+            <strong>
+                ${formatarEuro(
+                    Number(item.valor || 0)
+                )}
+            </strong>
 
-            </div>
-        `;
+        </div>
 
-    })
+    `)
     .join("");
 
 }
@@ -713,12 +768,11 @@ function ehDespesaCartao(item){
     return (
         item.origem === "Cartões" ||
         item.tipo === "cartao" ||
-        item.categoria === "Cartões" ||
         (
-            typeof item.subcategoria === "string" &&
-            item.subcategoria.startsWith(
-                "Cartão Crédito"
-            )
+            item.categoria === "Cartões" &&
+            String(
+                item.subcategoria || ""
+            ).startsWith("Cartão Crédito")
         )
     );
 
@@ -746,15 +800,12 @@ function atualizarCartoes(){
             return;
         }
 
-
         if(obterStatus(item) === "Pago"){
             return;
         }
 
-
         const cartao =
         item.subcategoria;
-
 
         if(
             Object.prototype
@@ -770,39 +821,57 @@ function atualizarCartoes(){
     });
 
 
-    const elemento =
+    const container =
     document.getElementById(
-        "cartoesResumo"
+        "listaCartoes"
     );
 
 
-    if(elemento){
+    container.innerHTML =
+    Object.keys(cartoes)
+    .map(nome=>{
 
-        elemento.innerHTML =
-        Object.entries(totais)
-        .map(([nome,valor])=>{
+        const dados =
+        cartoes[nome];
 
-            return `
-                <div class="card-cartao-resumo">
+        const valor =
+        totais[nome];
 
-                    <div class="cartao-resumo-nome">
-                        💳
-                        ${escaparHTML(
-                            nomeCartao(nome)
-                        )}
-                    </div>
+        const vazio =
+        valor === 0;
 
-                    <strong>
-                        ${formatarEuro(valor)}
-                    </strong>
+
+        return `
+
+            <div class="cartao-card ${vazio ? "vazio" : ""}">
+
+                <div class="cartao-nome">
+                    💳 ${dados.nome}
+                </div>
+
+                <div class="cartao-valor">
+                    ${formatarEuro(valor)}
+                </div>
+
+                <div class="cartao-label">
+                    Valor em aberto
+                </div>
+
+                <div
+                    class="cartao-status ${vazio ? "ok" : ""}">
+
+                    ${vazio
+                        ? "✓ Sem pendências"
+                        : "● Em aberto"}
 
                 </div>
-            `;
 
-        })
-        .join("");
+            </div>
 
-    }
+        `;
+
+    })
+    .join("");
 
 
     carregarTabelaCartoes();
@@ -811,7 +880,7 @@ function atualizarCartoes(){
 
 
 /* =========================================
-   TABELA DOS CARTÕES
+   TABELA DE CARTÕES
 ========================================= */
 
 function carregarTabelaCartoes(){
@@ -822,12 +891,7 @@ function carregarTabelaCartoes(){
     );
 
 
-    if(!tbody){
-        return;
-    }
-
-
-    const abertas =
+    const lista =
     despesas
     .filter(item=>
         ehDespesaCartao(item) &&
@@ -840,21 +904,18 @@ function carregarTabelaCartoes(){
     );
 
 
-    if(!abertas.length){
+    if(!lista.length){
 
         tbody.innerHTML =
-        `
-            <tr>
+        `<tr>
+            <td
+                colspan="7"
+                class="estado-vazio">
 
-                <td
-                    colspan="7"
-                    class="estado-vazio"
-                >
-                    Nenhuma compra em aberto.
-                </td>
+                Não existem compras em aberto.
 
-            </tr>
-        `;
+            </td>
+        </tr>`;
 
         return;
 
@@ -862,81 +923,76 @@ function carregarTabelaCartoes(){
 
 
     tbody.innerHTML =
-    abertas
-    .map(item=>{
+    lista
+    .map(item=>`
 
-        const descricao =
-        item.descricao ||
-        item.observacoes ||
-        item.subcategoria ||
-        "Despesa";
+        <tr>
 
+            <td>
+                ${formatarData(
+                    item.dataDespesa ||
+                    item.data
+                )}
+            </td>
 
-        return `
-            <tr>
+            <td>
+                ${escaparHTML(
+                    item.descricao ||
+                    item.observacoes ||
+                    "Despesa"
+                )}
+            </td>
 
-                <td>
-                    ${formatarData(
-                        item.dataDespesa ||
-                        item.data
+            <td>
+                ${escaparHTML(
+                    nomeCartao(
+                        item.subcategoria
+                    )
+                )}
+            </td>
+
+            <td>
+                ${escaparHTML(
+                    item.categoria || ""
+                )}
+            </td>
+
+            <td>
+                <strong>
+                    ${formatarEuro(
+                        Number(item.valor || 0)
                     )}
-                </td>
+                </strong>
+            </td>
 
-                <td>
-                    ${escaparHTML(
-                        descricao
-                    )}
-                </td>
+            <td>
+                <span class="status status-cartao">
+                    🔵 Em aberto
+                </span>
+            </td>
 
-                <td>
-                    ${escaparHTML(
-                        item.categoria ||
-                        "Cartões"
-                    )}
-                </td>
+            <td>
 
-                <td>
-                    ${escaparHTML(
-                        nomeCartao(
-                            item.subcategoria
-                        )
-                    )}
-                </td>
+                <button
+                    type="button"
+                    class="btn-acao btn-baixa btn-dar-baixa"
+                    data-id="${item.id}"
+                    data-valor="${Number(item.valor || 0)}"
+                    data-descricao="${encodeURIComponent(
+                        item.descricao ||
+                        item.observacoes ||
+                        item.subcategoria ||
+                        "Despesa"
+                    )}"
+                    onclick="window.abrirModalPagamento(this)">
+                    Dar baixa
+                </button>
 
-                <td>
-                    <strong>
-                        ${formatarEuro(
-                            Number(item.valor || 0)
-                        )}
-                    </strong>
-                </td>
+            </td>
 
-                <td>
-                    <span class="status-pill status-aberto">
-                        💳 Em aberto
-                    </span>
-                </td>
+        </tr>
 
-                <td>
-
-                    <button
-                        type="button"
-                        class="btn-acao btn-baixa btn-dar-baixa"
-                        data-id="${item.id}"
-                        data-valor="${Number(item.valor || 0)}"
-                        data-descricao="${encodeURIComponent(
-                            descricao
-                        )}"
-                        onclick="window.abrirModalPagamento(this)">
-                        Dar baixa
-                    </button>
-
-                </td>
-
-            </tr>
-        `;
-
-    })
+    `)
     .join("");
 
 }
@@ -950,42 +1006,34 @@ function atualizarApenasPagar(){
 
     const tbody =
     document.getElementById(
-        "tabelaAPagar"
+        "tabelaPagar"
     );
 
 
-    if(!tbody){
-        return;
-    }
-
-
-    const abertas =
+    const lista =
     despesas
     .filter(item=>
         obterStatus(item) !== "Pago"
     )
     .sort(
         (a,b)=>
-        obterDataOrdenacao(a) -
-        obterDataOrdenacao(b)
+        obterDataOrdenacao(b) -
+        obterDataOrdenacao(a)
     );
 
 
-    if(!abertas.length){
+    if(!lista.length){
 
         tbody.innerHTML =
-        `
-            <tr>
+        `<tr>
+            <td
+                colspan="7"
+                class="estado-vazio">
 
-                <td
-                    colspan="7"
-                    class="estado-vazio"
-                >
-                    Nenhuma despesa a pagar.
-                </td>
+                Não existem despesas a pagar.
 
-            </tr>
-        `;
+            </td>
+        </tr>`;
 
         return;
 
@@ -993,37 +1041,15 @@ function atualizarApenasPagar(){
 
 
     tbody.innerHTML =
-    abertas
+    lista
     .map(item=>{
 
-        const ehCartao =
+        const cartao =
         ehDespesaCartao(item);
 
 
-        const descricao =
-        item.descricao ||
-        item.observacoes ||
-        item.subcategoria ||
-        "Despesa";
-
-
-        const forma =
-        ehCartao
-        ? "Cartão — " +
-            nomeCartao(
-                item.subcategoria
-            )
-        : item.origem ||
-            "—";
-
-
-        const statusTexto =
-        ehCartao
-        ? "⌛ Cartão em aberto"
-        : "⌛ A pagar";
-
-
         return `
+
             <tr>
 
                 <td>
@@ -1035,21 +1061,31 @@ function atualizarApenasPagar(){
 
                 <td>
                     ${escaparHTML(
-                        descricao
+                        item.descricao ||
+                        item.observacoes ||
+                        "Despesa"
                     )}
                 </td>
 
                 <td>
                     ${escaparHTML(
-                        item.categoria ||
-                        "—"
+                        item.categoria || ""
                     )}
                 </td>
 
                 <td>
-                    ${escaparHTML(
-                        forma
-                    )}
+                    ${
+                        cartao
+                        ? "Cartão — " +
+                          escaparHTML(
+                              nomeCartao(
+                                  item.subcategoria
+                              )
+                          )
+                        : escaparHTML(
+                            item.origem || ""
+                        )
+                    }
                 </td>
 
                 <td>
@@ -1062,15 +1098,15 @@ function atualizarApenasPagar(){
 
                 <td>
 
-                    <span
-                        class="
-                            status-pill
-                            ${ehCartao
-                                ? "status-cartao"
-                                : "status-aberto"}
-                        "
-                    >
-                        ${statusTexto}
+                    <span class="status status-aberto">
+
+                        ⏳
+                        ${
+                            cartao
+                            ? "Cartão em aberto"
+                            : "A pagar"
+                        }
+
                     </span>
 
                 </td>
@@ -1078,7 +1114,7 @@ function atualizarApenasPagar(){
                 <td>
 
                     ${
-                        ehCartao
+                        cartao
 
                         ?
 
@@ -1088,7 +1124,10 @@ function atualizarApenasPagar(){
                             data-id="${item.id}"
                             data-valor="${Number(item.valor || 0)}"
                             data-descricao="${encodeURIComponent(
-                                descricao
+                                item.descricao ||
+                                item.observacoes ||
+                                item.subcategoria ||
+                                "Despesa"
                             )}"
                             onclick="window.abrirModalPagamento(this)">
                             Dar baixa
@@ -1097,17 +1136,18 @@ function atualizarApenasPagar(){
                         :
 
                         `<button
-                            type="button"
-                            class="btn-acao btn-pagar"
+                            class="btn-acao btn-baixa"
                             onclick="window.marcarDespesaPaga('${item.id}')">
-                            Marcar como paga
-                        </button>`
 
+                            Marcar como paga
+
+                        </button>`
                     }
 
                 </td>
 
             </tr>
+
         `;
 
     })
@@ -1128,12 +1168,7 @@ function carregarTabela(lista = despesas){
     );
 
 
-    if(!tbody){
-        return;
-    }
-
-
-    const resultado =
+    const ordenada =
     [...lista]
     .sort(
         (a,b)=>
@@ -1142,21 +1177,18 @@ function carregarTabela(lista = despesas){
     );
 
 
-    if(!resultado.length){
+    if(!ordenada.length){
 
         tbody.innerHTML =
-        `
-            <tr>
+        `<tr>
+            <td
+                colspan="10"
+                class="estado-vazio">
 
-                <td
-                    colspan="9"
-                    class="estado-vazio"
-                >
-                    Nenhuma despesa encontrada.
-                </td>
+                Nenhuma despesa encontrada.
 
-            </tr>
-        `;
+            </td>
+        </tr>`;
 
         return;
 
@@ -1164,23 +1196,52 @@ function carregarTabela(lista = despesas){
 
 
     tbody.innerHTML =
-    resultado
+    ordenada
     .map(item=>{
+
+        const cartao =
+        ehDespesaCartao(item);
 
         const status =
         obterStatus(item);
 
-        const ehCartao =
-        ehDespesaCartao(item);
 
-        const descricao =
-        item.descricao ||
-        item.observacoes ||
-        item.subcategoria ||
-        "Despesa";
+        const statusHTML =
+        status === "Pago"
+
+        ?
+
+        `<span class="status status-pago">
+            🟢 Pago
+        </span>`
+
+        :
+
+        cartao
+
+        ?
+
+        `<span class="status status-cartao">
+            🔵 Em aberto
+        </span>`
+
+        :
+
+        `<span class="status status-aberto">
+            ⏳ A pagar
+        </span>`;
+
+
+        const pagamento =
+        item.dataPagamento
+        ? formatarData(
+            item.dataPagamento
+          )
+        : "—";
 
 
         return `
+
             <tr>
 
                 <td>
@@ -1192,29 +1253,44 @@ function carregarTabela(lista = despesas){
 
                 <td>
                     ${escaparHTML(
-                        descricao
+                        item.descricao ||
+                        item.observacoes ||
+                        "Despesa"
                     )}
                 </td>
 
                 <td>
                     ${escaparHTML(
-                        item.categoria ||
-                        "—"
+                        item.categoria || ""
                     )}
                 </td>
 
                 <td>
                     ${escaparHTML(
-                        item.subcategoria ||
-                        "—"
+                        item.subcategoria || ""
                     )}
                 </td>
 
                 <td>
-                    ${escaparHTML(
-                        item.origem ||
-                        "—"
-                    )}
+                    ${
+                        cartao
+                        ? "Cartão"
+                        : escaparHTML(
+                            item.origem || ""
+                        )
+                    }
+                </td>
+
+                <td>
+                    ${
+                        cartao
+                        ? escaparHTML(
+                            nomeCartao(
+                                item.subcategoria
+                            )
+                          )
+                        : "—"
+                    }
                 </td>
 
                 <td>
@@ -1226,47 +1302,29 @@ function carregarTabela(lista = despesas){
                 </td>
 
                 <td>
+                    ${statusHTML}
+                </td>
 
+                <td>
                     ${
-                        status === "Pago"
-
-                        ?
-
-                        `<span class="status-pill status-pago">
-                            ✓ Pago
-                        </span>`
-
-                        :
-
-                        `<span class="status-pill status-aberto">
-                            ⌛ Em aberto
-                        </span>`
+                        item.dataPagamento
+                        ? escaparHTML(
+                            pagamento +
+                            (
+                                item.origemPagamento
+                                ? " • " +
+                                  item.origemPagamento
+                                : ""
+                            )
+                          )
+                        : "—"
                     }
-
                 </td>
 
                 <td>
 
                     ${
-                        status === "Pago"
-
-                        ?
-
-                        formatarData(
-                            item.dataPagamento
-                        )
-
-                        :
-
-                        "—"
-                    }
-
-                </td>
-
-                <td>
-
-                    ${
-                        ehCartao &&
+                        cartao &&
                         status !== "Pago"
 
                         ?
@@ -1277,7 +1335,10 @@ function carregarTabela(lista = despesas){
                             data-id="${item.id}"
                             data-valor="${Number(item.valor || 0)}"
                             data-descricao="${encodeURIComponent(
-                                descricao
+                                item.descricao ||
+                                item.observacoes ||
+                                item.subcategoria ||
+                                "Despesa"
                             )}"
                             onclick="window.abrirModalPagamento(this)">
                             Dar baixa
@@ -1285,25 +1346,19 @@ function carregarTabela(lista = despesas){
 
                         :
 
-                        status !== "Pago"
-
-                        ?
-
                         `<button
-                            type="button"
                             class="btn-acao btn-excluir"
                             onclick="window.excluirDespesa('${item.id}')">
+
                             Excluir
+
                         </button>`
-
-                        :
-
-                        "—"
                     }
 
                 </td>
 
             </tr>
+
         `;
 
     })
@@ -1420,18 +1475,21 @@ function limparFiltros(){
 
 
 /* =========================================
-   DAR BAIXA
+   BOTÃO DAR BAIXA
 ========================================= */
 
 /*
    Os botões chamam diretamente
    window.abrirModalPagamento().
 
-   Não usamos mais o antigo
-   document.addEventListener("click")
-   para evitar conflito.
+   O antigo document.addEventListener("click")
+   foi removido para evitar conflito.
 */
 
+
+/* =========================================
+   DAR BAIXA NO CARTÃO
+========================================= */
 
 function abrirModalPagamento(botao){
 
@@ -1521,19 +1579,10 @@ function abrirModalPagamento(botao){
 
 function fecharModalPagamento(){
 
-    const modal =
-    document.getElementById(
-        "modalPagamento"
-    );
-
-
-    if(modal){
-
-        modal
-        .classList
-        .remove("aberto");
-
-    }
+    document
+    .getElementById("modalPagamento")
+    .classList
+    .remove("aberto");
 
 }
 
@@ -1623,7 +1672,10 @@ async function confirmarPagamentoCartao(){
 
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "ERRO AO REGISTAR PAGAMENTO:",
+            error
+        );
 
         alert(
             "Não foi possível registar o pagamento."
@@ -1675,7 +1727,9 @@ async function marcarDespesaPaga(id){
                 dataPagamento:hoje,
 
                 origemPagamento:
-                item?.origem || ""
+                (
+                    item?.origem || ""
+                )
 
             }
         );
