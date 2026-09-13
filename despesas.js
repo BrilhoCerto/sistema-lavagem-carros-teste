@@ -1426,49 +1426,7 @@ function limparFiltros(){
 
 }
 
-/* =========================================
-   BOTÃO DAR BAIXA
-========================================= */
 
-document.addEventListener("click", function(e){
-
-    const botao = e.target.closest(".btn-dar-baixa");
-
-    if(!botao){
-        return;
-    }
-
-    const id = botao.getAttribute("data-id");
-
-    const item = despesas.find(
-        despesa => despesa.id === id
-    );
-
-    if(!item){
-        alert("Não foi possível localizar esta despesa.");
-        return;
-    }
-
-    document.getElementById("pagamentoId").value = id;
-
-    document.getElementById("pagamentoDescricao").textContent =
-        item.descricao ||
-        item.observacoes ||
-        item.subcategoria ||
-        "Despesa";
-
-    document.getElementById("pagamentoValor").textContent =
-        formatarEuro(Number(item.valor || 0));
-
-    document.getElementById("dataPagamento").value =
-        new Date().toISOString().split("T")[0];
-
-    document.getElementById("origemPagamento").value = "";
-
-    document.getElementById("modalPagamento")
-        .classList.add("aberto");
-
-});
 /* =========================================
    DAR BAIXA NO CARTÃO
 ========================================= */
