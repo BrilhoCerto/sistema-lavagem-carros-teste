@@ -14,19 +14,14 @@ import {
    ACESSO
 ========================================= */
 
-const perfilDespesa =
-localStorage.getItem("perfil");
+const perfilDespesa = localStorage.getItem("perfil");
 
-if(!perfilDespesa){
-
+if (!perfilDespesa) {
     window.location.href = "login.html";
-
 }
 
-if(perfilDespesa === "funcionario"){
-
+if (perfilDespesa === "funcionario") {
     window.location.href = "pagamentos.html";
-
 }
 
 
@@ -36,8 +31,7 @@ if(perfilDespesa === "funcionario"){
 
 let despesas = [];
 
-const despesasRef =
-collection(db,"despesas");
+const despesasRef = collection(db, "despesas");
 
 
 /* =========================================
@@ -46,14 +40,14 @@ collection(db,"despesas");
 
 const subcategorias = {
 
-    "Ordenados":[
+    "Ordenados": [
         "ADM",
         "Funcionário 1",
         "Funcionário 2",
         "Outros"
     ],
 
-    "Ordenado Diário":[
+    "Ordenado Diário": [
         "Vitória",
         "Mariana",
         "Natália",
@@ -61,28 +55,28 @@ const subcategorias = {
         "Outros"
     ],
 
-    "Comissões":[
+    "Comissões": [
         "ADM",
         "Funcionário 1",
         "Funcionário 2",
         "Outros"
     ],
 
-    "Despesas Operacionais":[
+    "Despesas Operacionais": [
         "Produtos",
         "Material",
         "Fornecedores",
         "Equipamentos"
     ],
 
-    "Alimentação":[
+    "Alimentação": [
         "Pequeno-almoço",
         "Almoço",
         "Jantar",
         "Café"
     ],
 
-    "Contas":[
+    "Contas": [
         "Água",
         "Luz",
         "Internet",
@@ -90,7 +84,7 @@ const subcategorias = {
         "Outros"
     ],
 
-    "Despesas Pessoais":[
+    "Despesas Pessoais": [
         "Compras do Mês",
         "Compras da Semana",
         "Mercado",
@@ -100,26 +94,26 @@ const subcategorias = {
         "Diversos"
     ],
 
-    "Cartões":[
+    "Cartões": [
         "Cartão Crédito Samuel CCA",
         "Cartão Crédito Samuel Millenium",
         "Cartão Crédito Samuel Cetelem",
         "Cartão Crédito Eliane"
     ],
 
-    "Combustível":[
+    "Combustível": [
         "Gasóleo",
         "Gasolina",
         "Outros"
     ],
 
-    "Oficina Mecânica":[
+    "Oficina Mecânica": [
         "Reparação",
         "Peças",
         "Manutenção"
     ],
 
-    "Outros":[
+    "Outros": [
         "Diversos"
     ]
 
@@ -132,24 +126,24 @@ const subcategorias = {
 
 const cartoes = {
 
-    "Cartão Crédito Samuel CCA":{
-        id:"cca",
-        nome:"Samuel CCA"
+    "Cartão Crédito Samuel CCA": {
+        id: "cca",
+        nome: "Samuel CCA"
     },
 
-    "Cartão Crédito Samuel Millenium":{
-        id:"millenium",
-        nome:"Samuel Millennium"
+    "Cartão Crédito Samuel Millenium": {
+        id: "millenium",
+        nome: "Samuel Millennium"
     },
 
-    "Cartão Crédito Samuel Cetelem":{
-        id:"cetelem",
-        nome:"Samuel Cetelem"
+    "Cartão Crédito Samuel Cetelem": {
+        id: "cetelem",
+        nome: "Samuel Cetelem"
     },
 
-    "Cartão Crédito Eliane":{
-        id:"eliane",
-        nome:"Eliane"
+    "Cartão Crédito Eliane": {
+        id: "eliane",
+        nome: "Eliane"
     }
 
 };
@@ -157,26 +151,45 @@ const cartoes = {
 
 /* =========================================
    FIRESTORE
+   IMPORTANTE:
+   firestoreId = ID REAL DO DOCUMENTO
 ========================================= */
 
 onSnapshot(
     despesasRef,
-    (snapshot)=>{
+    (snapshot) => {
 
-        despesas =
-        snapshot.docs.map(item=>({
+        despesas = snapshot.docs.map((docSnap) => {
 
-            ...item.data(),
+            return {
+                ...docSnap.data(),
 
-            // IMPORTANTE:
-            // usar o ID REAL do documento do Firestore.
-            // Alguns registros antigos possuem também
-            // um campo "id" dentro dos próprios dados.
-            id:item.id
+                /*
+                 * MUITO IMPORTANTE:
+                 * Alguns registros antigos possuem um campo
+                 * chamado "id" dentro dos dados.
+                 *
+                 * O Firestore possui outro ID:
+                 * docSnap.id
+                 *
+                 * Por isso usamos exclusivamente firestoreId
+                 * para atualizar ou excluir documentos.
+                 */
 
-        }));
+                firestoreId: docSnap.id
+            };
+
+        });
 
         atualizarTudo();
+
+    },
+    (error) => {
+
+        console.error(
+            "Erro ao carregar despesas:",
+            error
+        );
 
     }
 );
@@ -186,7 +199,7 @@ onSnapshot(
    ATUALIZAÇÃO GERAL
 ========================================= */
 
-function atualizarTudo(){
+function atualizarTudo() {
 
     atualizarResumo();
 
@@ -205,99 +218,121 @@ function atualizarTudo(){
    CATEGORIA → SUBCATEGORIA
 ========================================= */
 
-document
-.getElementById("categoria")
-.addEventListener(
-"change",
-function(){
+const campoCategoria = document.getElementById("categoria");
 
-    const categoria =
-    this.value;
+if (campoCategoria) {
 
-    const select =
-    document.getElementById("subcategoria");
+    campoCategoria.addEventListener(
+        "change",
+        function () {
 
-    select.innerHTML =
-    '<option value="">Selecione</option>';
+            const categoria = this.value;
 
-    if(!subcategorias[categoria]){
-        return;
-    }
+            const select =
+                document.getElementById("subcategoria");
 
-    subcategorias[categoria]
-    .forEach(item=>{
+            if (!select) return;
 
-        const option =
-        document.createElement("option");
+            select.innerHTML =
+                '<option value="">Selecione</option>';
 
-        option.value = item;
-        option.textContent = item;
+            if (!subcategorias[categoria]) {
+                return;
+            }
 
-        select.appendChild(option);
+            subcategorias[categoria].forEach(
+                (item) => {
 
-    });
+                    const option =
+                        document.createElement("option");
 
-});
+                    option.value = item;
+
+                    option.textContent = item;
+
+                    select.appendChild(option);
+
+                }
+            );
+
+        }
+    );
+
+}
 
 
 /* =========================================
    ORIGEM
 ========================================= */
 
-document
-.getElementById("origem")
-.addEventListener(
-"change",
-function(){
+const campoOrigem =
+    document.getElementById("origem");
 
-    const ehCartao =
-    this.value === "Cartões";
+if (campoOrigem) {
 
-    const campoCartao =
-    document.getElementById("campoCartao");
+    campoOrigem.addEventListener(
+        "change",
+        function () {
 
-    const campoSituacao =
-    document.getElementById("campoSituacao");
+            const ehCartao =
+                this.value === "Cartões";
 
-    if(ehCartao){
+            const campoCartao =
+                document.getElementById("campoCartao");
 
-        campoCartao
-        .classList
-        .remove("campo-oculto");
+            const campoSituacao =
+                document.getElementById("campoSituacao");
 
-        document
-        .getElementById("cartao")
-        .required = true;
+            const selectCartao =
+                document.getElementById("cartao");
 
-        document
-        .getElementById("situacao")
-        .value = "A Pagar";
+            const selectSituacao =
+                document.getElementById("situacao");
 
-        campoSituacao
-        .style
-        .display = "none";
 
-    }else{
+            if (ehCartao) {
 
-        campoCartao
-        .classList
-        .add("campo-oculto");
+                if (campoCartao) {
+                    campoCartao.classList.remove(
+                        "campo-oculto"
+                    );
+                }
 
-        document
-        .getElementById("cartao")
-        .required = false;
+                if (selectCartao) {
+                    selectCartao.required = true;
+                }
 
-        document
-        .getElementById("cartao")
-        .value = "";
+                if (selectSituacao) {
+                    selectSituacao.value = "A Pagar";
+                }
 
-        campoSituacao
-        .style
-        .display = "block";
+                if (campoSituacao) {
+                    campoSituacao.style.display = "none";
+                }
 
-    }
+            } else {
 
-});
+                if (campoCartao) {
+                    campoCartao.classList.add(
+                        "campo-oculto"
+                    );
+                }
+
+                if (selectCartao) {
+                    selectCartao.required = false;
+                    selectCartao.value = "";
+                }
+
+                if (campoSituacao) {
+                    campoSituacao.style.display = "block";
+                }
+
+            }
+
+        }
+    );
+
+}
 
 
 /* =========================================
@@ -305,251 +340,290 @@ function(){
 ========================================= */
 
 const filtroCategoria =
-document.getElementById("filtroCategoria");
+    document.getElementById("filtroCategoria");
 
-Object.keys(subcategorias)
-.forEach(categoria=>{
+if (filtroCategoria) {
 
-    const option =
-    document.createElement("option");
+    Object.keys(subcategorias).forEach(
+        (categoria) => {
 
-    option.value = categoria;
-    option.textContent = categoria;
+            const option =
+                document.createElement("option");
 
-    filtroCategoria
-    .appendChild(option);
+            option.value = categoria;
 
-});
+            option.textContent = categoria;
+
+            filtroCategoria.appendChild(option);
+
+        }
+    );
+
+}
 
 
 /* =========================================
    SALVAR DESPESA
 ========================================= */
 
-document
-.getElementById("formDespesa")
-.addEventListener(
-"submit",
-async function(e){
+const formDespesa =
+    document.getElementById("formDespesa");
 
-    e.preventDefault();
+if (formDespesa) {
 
-    try{
+    formDespesa.addEventListener(
+        "submit",
+        async function (e) {
 
-        const agora =
-        new Date();
+            e.preventDefault();
 
-        const origem =
-        document
-        .getElementById("origem")
-        .value;
+            try {
 
-        const ehCartao =
-        origem === "Cartões";
+                const agora = new Date();
 
-        const dataDespesa =
-        document
-        .getElementById("dataDespesa")
-        .value;
+                const origem =
+                    document
+                        .getElementById("origem")
+                        .value;
 
-        const descricao =
-        document
-        .getElementById("descricao")
-        .value
-        .trim();
+                const ehCartao =
+                    origem === "Cartões";
 
-        const categoria =
-        document
-        .getElementById("categoria")
-        .value;
 
-        const subcategoria =
-        ehCartao
-        ? document
-            .getElementById("cartao")
-            .value
-        : document
-            .getElementById("subcategoria")
-            .value;
+                const dataDespesa =
+                    document
+                        .getElementById("dataDespesa")
+                        .value;
 
-        const valor =
-        Number(
-            document
-            .getElementById("valor")
-            .value
-        );
 
-        if(!valor || valor <= 0){
+                const descricao =
+                    document
+                        .getElementById("descricao")
+                        .value
+                        .trim();
 
-            alert(
-                "Informe um valor válido."
-            );
 
-            return;
+                const categoria =
+                    document
+                        .getElementById("categoria")
+                        .value;
+
+
+                const subcategoria =
+                    ehCartao
+                        ? document
+                            .getElementById("cartao")
+                            .value
+                        : document
+                            .getElementById("subcategoria")
+                            .value;
+
+
+                const valor =
+                    Number(
+                        document
+                            .getElementById("valor")
+                            .value
+                    );
+
+
+                if (!valor || valor <= 0) {
+
+                    alert(
+                        "Informe um valor válido."
+                    );
+
+                    return;
+
+                }
+
+
+                const situacao =
+                    ehCartao
+                        ? "A Pagar"
+                        : document
+                            .getElementById("situacao")
+                            .value;
+
+
+                const novaDespesa = {
+
+                    criadoEm:
+                        agora.toISOString(),
+
+                    data:
+                        agora
+                            .toISOString()
+                            .split("T")[0],
+
+                    hora:
+                        agora.toLocaleTimeString(
+                            "pt-PT",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            }
+                        ),
+
+                    dataDespesa,
+
+                    descricao,
+
+                    origem,
+
+                    categoria,
+
+                    subcategoria,
+
+                    valor,
+
+                    status:
+                        ehCartao
+                            ? "Aberto"
+                            : situacao,
+
+                    tipo:
+                        ehCartao
+                            ? "cartao"
+                            : "normal",
+
+                    statusCartao:
+                        ehCartao
+                            ? "Aberto"
+                            : "",
+
+                    dataPagamento: "",
+
+                    origemPagamento: "",
+
+                    observacoes:
+                        document
+                            .getElementById("observacoes")
+                            .value
+                            .trim()
+
+                };
+
+
+                await addDoc(
+                    despesasRef,
+                    novaDespesa
+                );
+
+
+                formDespesa.reset();
+
+
+                const campoCartao =
+                    document.getElementById(
+                        "campoCartao"
+                    );
+
+                if (campoCartao) {
+
+                    campoCartao.classList.add(
+                        "campo-oculto"
+                    );
+
+                }
+
+
+                const campoSituacao =
+                    document.getElementById(
+                        "campoSituacao"
+                    );
+
+                if (campoSituacao) {
+
+                    campoSituacao.style.display =
+                        "block";
+
+                }
+
+
+                const selectCartao =
+                    document.getElementById(
+                        "cartao"
+                    );
+
+                if (selectCartao) {
+
+                    selectCartao.required =
+                        false;
+
+                }
+
+
+                alert(
+                    "Despesa registada com sucesso."
+                );
+
+
+                mudarAba("visao");
+
+
+            } catch (error) {
+
+                console.error(
+                    "Erro ao registar despesa:",
+                    error
+                );
+
+                alert(
+                    "Não foi possível registar a despesa."
+                );
+
+            }
 
         }
+    );
 
-
-        const situacao =
-        ehCartao
-        ? "A Pagar"
-        : document
-            .getElementById("situacao")
-            .value;
-
-
-        const novaDespesa = {
-
-            criadoEm:
-            agora
-            .toISOString(),
-
-            data:
-            agora
-            .toISOString()
-            .split("T")[0],
-
-            hora:
-            agora
-            .toLocaleTimeString(
-                "pt-PT",
-                {
-                    hour:"2-digit",
-                    minute:"2-digit"
-                }
-            ),
-
-            dataDespesa,
-
-            descricao,
-
-            origem,
-
-            categoria,
-
-            subcategoria,
-
-            valor,
-
-            status:
-            ehCartao
-            ? "Aberto"
-            : situacao,
-
-            tipo:
-            ehCartao
-            ? "cartao"
-            : "normal",
-
-            statusCartao:
-            ehCartao
-            ? "Aberto"
-            : "",
-
-            dataPagamento:
-            "",
-
-            origemPagamento:
-            "",
-
-            observacoes:
-            document
-            .getElementById("observacoes")
-            .value
-            .trim()
-
-        };
-
-
-        await addDoc(
-            despesasRef,
-            novaDespesa
-        );
-
-
-        document
-        .getElementById("formDespesa")
-        .reset();
-
-
-        document
-        .getElementById("campoCartao")
-        .classList
-        .add("campo-oculto");
-
-
-        document
-        .getElementById("campoSituacao")
-        .style
-        .display = "block";
-
-
-        document
-        .getElementById("cartao")
-        .required = false;
-
-
-        alert(
-            "Despesa registada com sucesso."
-        );
-
-
-        mudarAba("visao");
-
-
-    }catch(error){
-
-        console.error(error);
-
-        alert(
-            "Não foi possível registar a despesa."
-        );
-
-    }
-
-});
+}
 
 
 /* =========================================
    RESUMO
 ========================================= */
 
-function atualizarResumo(){
+function atualizarResumo() {
+
+    const agora = new Date();
 
     const hoje =
-    new Date()
-    .toISOString()
-    .split("T")[0];
-
-    const agora =
-    new Date();
+        agora
+            .toISOString()
+            .split("T")[0];
 
     const mes =
-    agora.getMonth();
+        agora.getMonth();
 
     const ano =
-    agora.getFullYear();
+        agora.getFullYear();
 
 
     let totalMes = 0;
+
     let totalPago = 0;
+
     let totalAberto = 0;
+
     let totalCartao = 0;
+
     let totalHoje = 0;
 
 
-    despesas.forEach(item=>{
+    despesas.forEach((item) => {
 
         const valor =
-        Number(item.valor || 0);
+            Number(item.valor || 0);
 
         const data =
-        item.dataDespesa ||
-        item.data ||
-        "";
+            item.dataDespesa ||
+            item.data ||
+            "";
 
 
-        if(data === hoje){
+        if (data === hoje) {
 
             totalHoje += valor;
 
@@ -557,19 +631,19 @@ function atualizarResumo(){
 
 
         const partes =
-        data.split("-");
+            data.split("-");
 
         const anoItem =
-        Number(partes[0]);
+            Number(partes[0]);
 
         const mesItem =
-        Number(partes[1]) - 1;
+            Number(partes[1]) - 1;
 
 
-        if(
+        if (
             anoItem === ano &&
             mesItem === mes
-        ){
+        ) {
 
             totalMes += valor;
 
@@ -577,24 +651,24 @@ function atualizarResumo(){
 
 
         const status =
-        obterStatus(item);
+            obterStatus(item);
 
 
-        if(status === "Pago"){
+        if (status === "Pago") {
 
             totalPago += valor;
 
-        }else{
+        } else {
 
             totalAberto += valor;
 
         }
 
 
-        if(
+        if (
             ehDespesaCartao(item) &&
             status !== "Pago"
-        ){
+        ) {
 
             totalCartao += valor;
 
@@ -636,22 +710,27 @@ function atualizarResumo(){
    VISÃO GERAL
 ========================================= */
 
-function atualizarVisao(){
+function atualizarVisao() {
 
     const categorias = {};
 
-    despesas.forEach(item=>{
+
+    despesas.forEach((item) => {
 
         const categoria =
-        item.categoria ||
-        "Outros";
+            item.categoria ||
+            "Outros";
 
         const valor =
-        Number(item.valor || 0);
+            Number(item.valor || 0);
 
-        if(!categorias[categoria]){
+
+        if (!categorias[categoria]) {
+
             categorias[categoria] = 0;
+
         }
+
 
         categorias[categoria] += valor;
 
@@ -659,43 +738,51 @@ function atualizarVisao(){
 
 
     const container =
-    document.getElementById(
-        "resumoCategorias"
-    );
+        document.getElementById(
+            "resumoCategorias"
+        );
+
+
+    if (!container) return;
 
 
     const entradas =
-    Object.entries(categorias)
-    .sort((a,b)=>b[1]-a[1]);
+        Object.entries(categorias)
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            );
 
 
-    if(!entradas.length){
-
-        container.innerHTML =
-        `<div class="estado-vazio">
-            Ainda não existem despesas registadas.
-        </div>`;
-
-    }else{
+    if (!entradas.length) {
 
         container.innerHTML =
-        entradas
-        .map(item=>`
-
-            <div class="linha-resumo">
-
-                <span>
-                    ${escaparHTML(item[0])}
-                </span>
-
-                <strong>
-                    ${formatarEuro(item[1])}
-                </strong>
-
+            `
+            <div class="estado-vazio">
+                Ainda não existem despesas registadas.
             </div>
+            `;
 
-        `)
-        .join("");
+    } else {
+
+        container.innerHTML =
+            entradas
+                .map(
+                    (item) => `
+                        <div class="linha-resumo">
+
+                            <span>
+                                ${escaparHTML(item[0])}
+                            </span>
+
+                            <strong>
+                                ${formatarEuro(item[1])}
+                            </strong>
+
+                        </div>
+                    `
+                )
+                .join("");
 
     }
 
@@ -703,27 +790,32 @@ function atualizarVisao(){
     /* ÚLTIMAS DESPESAS */
 
     const ultimas =
-    [...despesas]
-    .sort(
-        (a,b)=>
-        obterDataOrdenacao(b) -
-        obterDataOrdenacao(a)
-    )
-    .slice(0,5);
+        [...despesas]
+            .sort(
+                (a, b) =>
+                    obterDataOrdenacao(b) -
+                    obterDataOrdenacao(a)
+            )
+            .slice(0, 5);
 
 
     const ultimasContainer =
-    document.getElementById(
-        "ultimasDespesas"
-    );
+        document.getElementById(
+            "ultimasDespesas"
+        );
 
 
-    if(!ultimas.length){
+    if (!ultimasContainer) return;
+
+
+    if (!ultimas.length) {
 
         ultimasContainer.innerHTML =
-        `<div class="estado-vazio">
-            Ainda não existem despesas registadas.
-        </div>`;
+            `
+            <div class="estado-vazio">
+                Ainda não existem despesas registadas.
+            </div>
+            `;
 
         return;
 
@@ -731,43 +823,45 @@ function atualizarVisao(){
 
 
     ultimasContainer.innerHTML =
-    ultimas
-    .map(item=>`
+        ultimas
+            .map(
+                (item) => `
+                    <div class="linha-resumo">
 
-        <div class="linha-resumo">
+                        <span>
+                            ${escaparHTML(
+                                item.descricao ||
+                                item.observacoes ||
+                                item.subcategoria ||
+                                "Despesa"
+                            )}
+                        </span>
 
-            <span>
-                ${escaparHTML(
-                    item.descricao ||
-                    item.observacoes ||
-                    item.subcategoria ||
-                    "Despesa"
-                )}
-            </span>
+                        <strong>
+                            ${formatarEuro(
+                                Number(item.valor || 0)
+                            )}
+                        </strong>
 
-            <strong>
-                ${formatarEuro(
-                    Number(item.valor || 0)
-                )}
-            </strong>
-
-        </div>
-
-    `)
-    .join("");
+                    </div>
+                `
+            )
+            .join("");
 
 }
 
 
 /* =========================================
-   CARTÕES
+   IDENTIFICAR CARTÃO
 ========================================= */
 
-function ehDespesaCartao(item){
+function ehDespesaCartao(item) {
 
     return (
         item.origem === "Cartões" ||
+
         item.tipo === "cartao" ||
+
         (
             item.categoria === "Cartões" &&
             String(
@@ -779,42 +873,51 @@ function ehDespesaCartao(item){
 }
 
 
-function atualizarCartoes(){
+/* =========================================
+   CARTÕES
+========================================= */
+
+function atualizarCartoes() {
 
     const totais = {
 
-        "Cartão Crédito Samuel CCA":0,
+        "Cartão Crédito Samuel CCA": 0,
 
-        "Cartão Crédito Samuel Millenium":0,
+        "Cartão Crédito Samuel Millenium": 0,
 
-        "Cartão Crédito Samuel Cetelem":0,
+        "Cartão Crédito Samuel Cetelem": 0,
 
-        "Cartão Crédito Eliane":0
+        "Cartão Crédito Eliane": 0
 
     };
 
 
-    despesas.forEach(item=>{
+    despesas.forEach((item) => {
 
-        if(!ehDespesaCartao(item)){
+        if (!ehDespesaCartao(item)) {
             return;
         }
 
-        if(obterStatus(item) === "Pago"){
+
+        if (obterStatus(item) === "Pago") {
             return;
         }
+
 
         const cartao =
-        item.subcategoria;
+            item.subcategoria;
 
-        if(
-            Object.prototype
-            .hasOwnProperty
-            .call(totais,cartao)
-        ){
+
+        if (
+            Object.prototype.hasOwnProperty
+                .call(
+                    totais,
+                    cartao
+                )
+        ) {
 
             totais[cartao] +=
-            Number(item.valor || 0);
+                Number(item.valor || 0);
 
         }
 
@@ -822,56 +925,58 @@ function atualizarCartoes(){
 
 
     const container =
-    document.getElementById(
-        "listaCartoes"
-    );
+        document.getElementById(
+            "listaCartoes"
+        );
+
+
+    if (!container) return;
 
 
     container.innerHTML =
-    Object.keys(cartoes)
-    .map(nome=>{
+        Object.keys(cartoes)
+            .map((nome) => {
 
-        const dados =
-        cartoes[nome];
+                const dados =
+                    cartoes[nome];
 
-        const valor =
-        totais[nome];
+                const valor =
+                    totais[nome];
 
-        const vazio =
-        valor === 0;
+                const vazio =
+                    valor === 0;
 
 
-        return `
+                return `
+                    <div class="cartao-card ${vazio ? "vazio" : ""}">
 
-            <div class="cartao-card ${vazio ? "vazio" : ""}">
+                        <div class="cartao-nome">
+                            💳 ${escaparHTML(dados.nome)}
+                        </div>
 
-                <div class="cartao-nome">
-                    💳 ${dados.nome}
-                </div>
+                        <div class="cartao-valor">
+                            ${formatarEuro(valor)}
+                        </div>
 
-                <div class="cartao-valor">
-                    ${formatarEuro(valor)}
-                </div>
+                        <div class="cartao-label">
+                            Valor em aberto
+                        </div>
 
-                <div class="cartao-label">
-                    Valor em aberto
-                </div>
+                        <div class="cartao-status ${vazio ? "ok" : ""}">
 
-                <div
-                    class="cartao-status ${vazio ? "ok" : ""}">
+                            ${
+                                vazio
+                                    ? "✓ Sem pendências"
+                                    : "● Em aberto"
+                            }
 
-                    ${vazio
-                        ? "✓ Sem pendências"
-                        : "● Em aberto"}
+                        </div>
 
-                </div>
+                    </div>
+                `;
 
-            </div>
-
-        `;
-
-    })
-    .join("");
+            })
+            .join("");
 
 
     carregarTabelaCartoes();
@@ -883,39 +988,47 @@ function atualizarCartoes(){
    TABELA DE CARTÕES
 ========================================= */
 
-function carregarTabelaCartoes(){
+function carregarTabelaCartoes() {
 
     const tbody =
-    document.getElementById(
-        "tabelaCartoes"
-    );
+        document.getElementById(
+            "tabelaCartoes"
+        );
+
+
+    if (!tbody) return;
 
 
     const lista =
-    despesas
-    .filter(item=>
-        ehDespesaCartao(item) &&
-        obterStatus(item) !== "Pago"
-    )
-    .sort(
-        (a,b)=>
-        obterDataOrdenacao(b) -
-        obterDataOrdenacao(a)
-    );
+        despesas
+            .filter(
+                (item) =>
+                    ehDespesaCartao(item) &&
+                    obterStatus(item) !== "Pago"
+            )
+            .sort(
+                (a, b) =>
+                    obterDataOrdenacao(b) -
+                    obterDataOrdenacao(a)
+            );
 
 
-    if(!lista.length){
+    if (!lista.length) {
 
         tbody.innerHTML =
-        `<tr>
-            <td
-                colspan="7"
-                class="estado-vazio">
+            `
+            <tr>
 
-                Não existem compras em aberto.
+                <td
+                    colspan="7"
+                    class="estado-vazio">
 
-            </td>
-        </tr>`;
+                    Não existem compras em aberto.
+
+                </td>
+
+            </tr>
+            `;
 
         return;
 
@@ -923,77 +1036,84 @@ function carregarTabelaCartoes(){
 
 
     tbody.innerHTML =
-    lista
-    .map(item=>`
+        lista
+            .map((item) => {
 
-        <tr>
+                return `
+                    <tr>
 
-            <td>
-                ${formatarData(
-                    item.dataDespesa ||
-                    item.data
-                )}
-            </td>
+                        <td>
+                            ${formatarData(
+                                item.dataDespesa ||
+                                item.data
+                            )}
+                        </td>
 
-            <td>
-                ${escaparHTML(
-                    item.descricao ||
-                    item.observacoes ||
-                    "Despesa"
-                )}
-            </td>
+                        <td>
+                            ${escaparHTML(
+                                item.descricao ||
+                                item.observacoes ||
+                                "Despesa"
+                            )}
+                        </td>
 
-            <td>
-                ${escaparHTML(
-                    nomeCartao(
-                        item.subcategoria
-                    )
-                )}
-            </td>
+                        <td>
+                            ${escaparHTML(
+                                nomeCartao(
+                                    item.subcategoria
+                                )
+                            )}
+                        </td>
 
-            <td>
-                ${escaparHTML(
-                    item.categoria || ""
-                )}
-            </td>
+                        <td>
+                            ${escaparHTML(
+                                item.categoria || ""
+                            )}
+                        </td>
 
-            <td>
-                <strong>
-                    ${formatarEuro(
-                        Number(item.valor || 0)
-                    )}
-                </strong>
-            </td>
+                        <td>
 
-            <td>
-                <span class="status status-cartao">
-                    🔵 Em aberto
-                </span>
-            </td>
+                            <strong>
+                                ${formatarEuro(
+                                    Number(item.valor || 0)
+                                )}
+                            </strong>
 
-            <td>
+                        </td>
 
-                <button
-                    type="button"
-                    class="btn-acao btn-baixa btn-dar-baixa"
-                    data-id="${item.id}"
-                    data-valor="${Number(item.valor || 0)}"
-                    data-descricao="${encodeURIComponent(
-                        item.descricao ||
-                        item.observacoes ||
-                        item.subcategoria ||
-                        "Despesa"
-                    )}"
-                    onclick="window.abrirModalPagamento(this)">
-                    Dar baixa
-                </button>
+                        <td>
 
-            </td>
+                            <span class="status status-cartao">
+                                🔵 Em aberto
+                            </span>
 
-        </tr>
+                        </td>
 
-    `)
-    .join("");
+                        <td>
+
+                            <button
+                                type="button"
+                                class="btn-acao btn-baixa btn-dar-baixa"
+                                data-id="${escaparHTML(item.firestoreId)}"
+                                data-valor="${Number(item.valor || 0)}"
+                                data-descricao="${encodeURIComponent(
+                                    item.descricao ||
+                                    item.observacoes ||
+                                    item.subcategoria ||
+                                    "Despesa"
+                                )}"
+                                onclick="window.abrirModalPagamento(this)"
+                            >
+                                Dar baixa
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+
+            })
+            .join("");
 
 }
 
@@ -1002,38 +1122,46 @@ function carregarTabelaCartoes(){
    A PAGAR
 ========================================= */
 
-function atualizarApenasPagar(){
+function atualizarApenasPagar() {
 
     const tbody =
-    document.getElementById(
-        "tabelaPagar"
-    );
+        document.getElementById(
+            "tabelaPagar"
+        );
+
+
+    if (!tbody) return;
 
 
     const lista =
-    despesas
-    .filter(item=>
-        obterStatus(item) !== "Pago"
-    )
-    .sort(
-        (a,b)=>
-        obterDataOrdenacao(b) -
-        obterDataOrdenacao(a)
-    );
+        despesas
+            .filter(
+                (item) =>
+                    obterStatus(item) !== "Pago"
+            )
+            .sort(
+                (a, b) =>
+                    obterDataOrdenacao(b) -
+                    obterDataOrdenacao(a)
+            );
 
 
-    if(!lista.length){
+    if (!lista.length) {
 
         tbody.innerHTML =
-        `<tr>
-            <td
-                colspan="7"
-                class="estado-vazio">
+            `
+            <tr>
 
-                Não existem despesas a pagar.
+                <td
+                    colspan="7"
+                    class="estado-vazio">
 
-            </td>
-        </tr>`;
+                    Não existem despesas a pagar.
+
+                </td>
+
+            </tr>
+            `;
 
         return;
 
@@ -1041,117 +1169,124 @@ function atualizarApenasPagar(){
 
 
     tbody.innerHTML =
-    lista
-    .map(item=>{
+        lista
+            .map((item) => {
 
-        const cartao =
-        ehDespesaCartao(item);
+                const cartao =
+                    ehDespesaCartao(item);
 
 
-        return `
+                return `
+                    <tr>
 
-            <tr>
+                        <td>
+                            ${formatarData(
+                                item.dataDespesa ||
+                                item.data
+                            )}
+                        </td>
 
-                <td>
-                    ${formatarData(
-                        item.dataDespesa ||
-                        item.data
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        item.descricao ||
-                        item.observacoes ||
-                        "Despesa"
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        item.categoria || ""
-                    )}
-                </td>
-
-                <td>
-                    ${
-                        cartao
-                        ? "Cartão — " +
-                          escaparHTML(
-                              nomeCartao(
-                                  item.subcategoria
-                              )
-                          )
-                        : escaparHTML(
-                            item.origem || ""
-                        )
-                    }
-                </td>
-
-                <td>
-                    <strong>
-                        ${formatarEuro(
-                            Number(item.valor || 0)
-                        )}
-                    </strong>
-                </td>
-
-                <td>
-
-                    <span class="status status-aberto">
-
-                        ⏳
-                        ${
-                            cartao
-                            ? "Cartão em aberto"
-                            : "A pagar"
-                        }
-
-                    </span>
-
-                </td>
-
-                <td>
-
-                    ${
-                        cartao
-
-                        ?
-
-                        `<button
-                            type="button"
-                            class="btn-acao btn-baixa btn-dar-baixa"
-                            data-id="${item.id}"
-                            data-valor="${Number(item.valor || 0)}"
-                            data-descricao="${encodeURIComponent(
+                        <td>
+                            ${escaparHTML(
                                 item.descricao ||
                                 item.observacoes ||
-                                item.subcategoria ||
                                 "Despesa"
-                            )}"
-                            onclick="window.abrirModalPagamento(this)">
-                            Dar baixa
-                        </button>`
+                            )}
+                        </td>
 
-                        :
+                        <td>
+                            ${escaparHTML(
+                                item.categoria || ""
+                            )}
+                        </td>
 
-                        `<button
-                            class="btn-acao btn-baixa"
-                            onclick="window.marcarDespesaPaga('${item.id}')">
+                        <td>
 
-                            Marcar como paga
+                            ${
+                                cartao
+                                    ? "Cartão — " +
+                                      escaparHTML(
+                                          nomeCartao(
+                                              item.subcategoria
+                                          )
+                                      )
+                                    : escaparHTML(
+                                          item.origem || ""
+                                      )
+                            }
 
-                        </button>`
-                    }
+                        </td>
 
-                </td>
+                        <td>
 
-            </tr>
+                            <strong>
+                                ${formatarEuro(
+                                    Number(item.valor || 0)
+                                )}
+                            </strong>
 
-        `;
+                        </td>
 
-    })
-    .join("");
+                        <td>
+
+                            <span class="status status-aberto">
+
+                                ⏳
+                                ${
+                                    cartao
+                                        ? "Cartão em aberto"
+                                        : "A pagar"
+                                }
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            ${
+                                cartao
+
+                                    ?
+
+                                    `
+                                    <button
+                                        type="button"
+                                        class="btn-acao btn-baixa btn-dar-baixa"
+                                        data-id="${escaparHTML(item.firestoreId)}"
+                                        data-valor="${Number(item.valor || 0)}"
+                                        data-descricao="${encodeURIComponent(
+                                            item.descricao ||
+                                            item.observacoes ||
+                                            item.subcategoria ||
+                                            "Despesa"
+                                        )}"
+                                        onclick="window.abrirModalPagamento(this)"
+                                    >
+                                        Dar baixa
+                                    </button>
+                                    `
+
+                                    :
+
+                                    `
+                                    <button
+                                        type="button"
+                                        class="btn-acao btn-baixa"
+                                        onclick="window.marcarDespesaPaga('${escaparHTML(item.firestoreId)}')"
+                                    >
+                                        Marcar como paga
+                                    </button>
+                                    `
+                            }
+
+                        </td>
+
+                    </tr>
+                `;
+
+            })
+            .join("");
 
 }
 
@@ -1160,35 +1295,44 @@ function atualizarApenasPagar(){
    HISTÓRICO
 ========================================= */
 
-function carregarTabela(lista = despesas){
+function carregarTabela(
+    lista = despesas
+) {
 
     const tbody =
-    document.getElementById(
-        "tabelaDespesas"
-    );
+        document.getElementById(
+            "tabelaDespesas"
+        );
+
+
+    if (!tbody) return;
 
 
     const ordenada =
-    [...lista]
-    .sort(
-        (a,b)=>
-        obterDataOrdenacao(b) -
-        obterDataOrdenacao(a)
-    );
+        [...lista]
+            .sort(
+                (a, b) =>
+                    obterDataOrdenacao(b) -
+                    obterDataOrdenacao(a)
+            );
 
 
-    if(!ordenada.length){
+    if (!ordenada.length) {
 
         tbody.innerHTML =
-        `<tr>
-            <td
-                colspan="10"
-                class="estado-vazio">
+            `
+            <tr>
 
-                Nenhuma despesa encontrada.
+                <td
+                    colspan="10"
+                    class="estado-vazio">
 
-            </td>
-        </tr>`;
+                    Nenhuma despesa encontrada.
+
+                </td>
+
+            </tr>
+            `;
 
         return;
 
@@ -1196,173 +1340,195 @@ function carregarTabela(lista = despesas){
 
 
     tbody.innerHTML =
-    ordenada
-    .map(item=>{
+        ordenada
+            .map((item) => {
 
-        const cartao =
-        ehDespesaCartao(item);
+                const cartao =
+                    ehDespesaCartao(item);
 
-        const status =
-        obterStatus(item);
-
-
-        const statusHTML =
-        status === "Pago"
-
-        ?
-
-        `<span class="status status-pago">
-            🟢 Pago
-        </span>`
-
-        :
-
-        cartao
-
-        ?
-
-        `<span class="status status-cartao">
-            🔵 Em aberto
-        </span>`
-
-        :
-
-        `<span class="status status-aberto">
-            ⏳ A pagar
-        </span>`;
+                const status =
+                    obterStatus(item);
 
 
-        const pagamento =
-        item.dataPagamento
-        ? formatarData(
-            item.dataPagamento
-          )
-        : "—";
+                let statusHTML;
 
 
-        return `
+                if (status === "Pago") {
 
-            <tr>
+                    statusHTML =
+                        `
+                        <span class="status status-pago">
+                            🟢 Pago
+                        </span>
+                        `;
 
-                <td>
-                    ${formatarData(
-                        item.dataDespesa ||
-                        item.data
-                    )}
-                </td>
+                } else if (cartao) {
 
-                <td>
-                    ${escaparHTML(
-                        item.descricao ||
-                        item.observacoes ||
-                        "Despesa"
-                    )}
-                </td>
+                    statusHTML =
+                        `
+                        <span class="status status-cartao">
+                            🔵 Em aberto
+                        </span>
+                        `;
 
-                <td>
-                    ${escaparHTML(
-                        item.categoria || ""
-                    )}
-                </td>
+                } else {
 
-                <td>
-                    ${escaparHTML(
-                        item.subcategoria || ""
-                    )}
-                </td>
+                    statusHTML =
+                        `
+                        <span class="status status-aberto">
+                            ⏳ A pagar
+                        </span>
+                        `;
 
-                <td>
-                    ${
-                        cartao
-                        ? "Cartão"
-                        : escaparHTML(
-                            item.origem || ""
-                        )
-                    }
-                </td>
+                }
 
-                <td>
-                    ${
-                        cartao
-                        ? escaparHTML(
-                            nomeCartao(
-                                item.subcategoria
-                            )
+
+                const pagamento =
+                    item.dataPagamento
+                        ? formatarData(
+                              item.dataPagamento
                           )
-                        : "—"
-                    }
-                </td>
+                        : "—";
 
-                <td>
-                    <strong>
-                        ${formatarEuro(
-                            Number(item.valor || 0)
-                        )}
-                    </strong>
-                </td>
 
-                <td>
-                    ${statusHTML}
-                </td>
+                return `
+                    <tr>
 
-                <td>
-                    ${
-                        item.dataPagamento
-                        ? escaparHTML(
-                            pagamento +
-                            (
-                                item.origemPagamento
-                                ? " • " +
-                                  item.origemPagamento
-                                : ""
-                            )
-                          )
-                        : "—"
-                    }
-                </td>
+                        <td>
+                            ${formatarData(
+                                item.dataDespesa ||
+                                item.data
+                            )}
+                        </td>
 
-                <td>
-
-                    ${
-                        cartao &&
-                        status !== "Pago"
-
-                        ?
-
-                        `<button
-                            type="button"
-                            class="btn-acao btn-baixa btn-dar-baixa"
-                            data-id="${item.id}"
-                            data-valor="${Number(item.valor || 0)}"
-                            data-descricao="${encodeURIComponent(
+                        <td>
+                            ${escaparHTML(
                                 item.descricao ||
                                 item.observacoes ||
-                                item.subcategoria ||
                                 "Despesa"
-                            )}"
-                            onclick="window.abrirModalPagamento(this)">
-                            Dar baixa
-                        </button>`
+                            )}
+                        </td>
 
-                        :
+                        <td>
+                            ${escaparHTML(
+                                item.categoria || ""
+                            )}
+                        </td>
 
-                        `<button
-                            class="btn-acao btn-excluir"
-                            onclick="window.excluirDespesa('${item.id}')">
+                        <td>
+                            ${escaparHTML(
+                                item.subcategoria || ""
+                            )}
+                        </td>
 
-                            Excluir
+                        <td>
 
-                        </button>`
-                    }
+                            ${
+                                cartao
+                                    ? "Cartão"
+                                    : escaparHTML(
+                                          item.origem || ""
+                                      )
+                            }
 
-                </td>
+                        </td>
 
-            </tr>
+                        <td>
 
-        `;
+                            ${
+                                cartao
+                                    ? escaparHTML(
+                                          nomeCartao(
+                                              item.subcategoria
+                                          )
+                                      )
+                                    : "—"
+                            }
 
-    })
-    .join("");
+                        </td>
+
+                        <td>
+
+                            <strong>
+                                ${formatarEuro(
+                                    Number(item.valor || 0)
+                                )}
+                            </strong>
+
+                        </td>
+
+                        <td>
+                            ${statusHTML}
+                        </td>
+
+                        <td>
+
+                            ${
+                                item.dataPagamento
+
+                                    ?
+
+                                    escaparHTML(
+                                        pagamento +
+                                        (
+                                            item.origemPagamento
+                                                ? " • " +
+                                                  item.origemPagamento
+                                                : ""
+                                        )
+                                    )
+
+                                    : "—"
+                            }
+
+                        </td>
+
+                        <td>
+
+                            ${
+                                cartao &&
+                                status !== "Pago"
+
+                                    ?
+
+                                    `
+                                    <button
+                                        type="button"
+                                        class="btn-acao btn-baixa btn-dar-baixa"
+                                        data-id="${escaparHTML(item.firestoreId)}"
+                                        data-valor="${Number(item.valor || 0)}"
+                                        data-descricao="${encodeURIComponent(
+                                            item.descricao ||
+                                            item.observacoes ||
+                                            item.subcategoria ||
+                                            "Despesa"
+                                        )}"
+                                        onclick="window.abrirModalPagamento(this)"
+                                    >
+                                        Dar baixa
+                                    </button>
+                                    `
+
+                                    :
+
+                                    `
+                                    <button
+                                        type="button"
+                                        class="btn-acao btn-excluir"
+                                        onclick="window.excluirDespesa('${escaparHTML(item.firestoreId)}')"
+                                    >
+                                        Excluir
+                                    </button>
+                                    `
+                            }
+
+                        </td>
+
+                    </tr>
+                `;
+
+            })
+            .join("");
 
 }
 
@@ -1371,77 +1537,84 @@ function carregarTabela(lista = despesas){
    FILTROS
 ========================================= */
 
-function filtrarDespesas(){
+function filtrarDespesas() {
 
     let resultado =
-    [...despesas];
+        [...despesas];
 
 
     const inicio =
-    document
-    .getElementById("filtroInicio")
-    .value;
+        document
+            .getElementById("filtroInicio")
+            ?.value || "";
+
 
     const fim =
-    document
-    .getElementById("filtroFim")
-    .value;
+        document
+            .getElementById("filtroFim")
+            ?.value || "";
+
 
     const categoria =
-    document
-    .getElementById("filtroCategoria")
-    .value;
+        document
+            .getElementById("filtroCategoria")
+            ?.value || "";
+
 
     const origem =
-    document
-    .getElementById("filtroOrigem")
-    .value;
+        document
+            .getElementById("filtroOrigem")
+            ?.value || "";
 
 
-    if(inicio){
+    if (inicio) {
 
         resultado =
-        resultado.filter(item=>
-            (
-                item.dataDespesa ||
-                item.data ||
-                ""
-            ) >= inicio
-        );
+            resultado.filter(
+                (item) =>
+                    (
+                        item.dataDespesa ||
+                        item.data ||
+                        ""
+                    ) >= inicio
+            );
 
     }
 
 
-    if(fim){
+    if (fim) {
 
         resultado =
-        resultado.filter(item=>
-            (
-                item.dataDespesa ||
-                item.data ||
-                ""
-            ) <= fim
-        );
+            resultado.filter(
+                (item) =>
+                    (
+                        item.dataDespesa ||
+                        item.data ||
+                        ""
+                    ) <= fim
+            );
 
     }
 
 
-    if(categoria){
+    if (categoria) {
 
         resultado =
-        resultado.filter(item=>
-            item.categoria === categoria
-        );
+            resultado.filter(
+                (item) =>
+                    item.categoria === categoria
+            );
 
     }
 
 
-    if(origem){
+    if (origem) {
 
         resultado =
-        resultado.filter(item=>
-            item.origem === origem
-        );
+            resultado.filter(
+                (item) =>
+                    item.origem === origem
+            );
 
     }
 
@@ -1451,23 +1624,45 @@ function filtrarDespesas(){
 }
 
 
-function limparFiltros(){
+function limparFiltros() {
 
-    document
-    .getElementById("filtroInicio")
-    .value = "";
+    const filtroInicio =
+        document.getElementById(
+            "filtroInicio"
+        );
 
-    document
-    .getElementById("filtroFim")
-    .value = "";
+    const filtroFim =
+        document.getElementById(
+            "filtroFim"
+        );
 
-    document
-    .getElementById("filtroCategoria")
-    .value = "";
+    const filtroCategoria =
+        document.getElementById(
+            "filtroCategoria"
+        );
 
-    document
-    .getElementById("filtroOrigem")
-    .value = "";
+    const filtroOrigem =
+        document.getElementById(
+            "filtroOrigem"
+        );
+
+
+    if (filtroInicio) {
+        filtroInicio.value = "";
+    }
+
+    if (filtroFim) {
+        filtroFim.value = "";
+    }
+
+    if (filtroCategoria) {
+        filtroCategoria.value = "";
+    }
+
+    if (filtroOrigem) {
+        filtroOrigem.value = "";
+    }
+
 
     carregarTabela();
 
@@ -1475,91 +1670,101 @@ function limparFiltros(){
 
 
 /* =========================================
-   BOTÃO DAR BAIXA
+   ABRIR MODAL DE PAGAMENTO
 ========================================= */
 
-/*
-   Os botões chamam diretamente
-   window.abrirModalPagamento().
+function abrirModalPagamento(botao) {
 
-   O antigo document.addEventListener("click")
-   foi removido para evitar conflito.
-*/
+    /*
+     * Aqui o data-id agora contém exclusivamente
+     * o firestoreId real.
+     */
 
-
-/* =========================================
-   DAR BAIXA NO CARTÃO
-========================================= */
-
-function abrirModalPagamento(botao){
-
-    const id =
-    botao.getAttribute("data-id");
+    const firestoreId =
+        botao.getAttribute("data-id");
 
 
     const valor =
-    Number(
-        botao.getAttribute("data-valor") || 0
-    );
+        Number(
+            botao.getAttribute("data-valor") || 0
+        );
 
 
     const descricaoCodificada =
-    botao.getAttribute("data-descricao") || "";
+        botao.getAttribute(
+            "data-descricao"
+        ) || "";
 
 
-    let descricao = "Despesa";
+    let descricao =
+        "Despesa";
 
 
-    try{
+    try {
 
         descricao =
-        decodeURIComponent(
-            descricaoCodificada
-        ) || "Despesa";
+            decodeURIComponent(
+                descricaoCodificada
+            ) || "Despesa";
 
-    }catch(error){
+    } catch (error) {
 
         console.error(error);
 
     }
 
 
-    document
-    .getElementById("pagamentoId")
-    .value = id;
+    /*
+     * Verificação de segurança.
+     */
+
+    if (!firestoreId) {
+
+        alert(
+            "Não foi possível identificar esta despesa."
+        );
+
+        return;
+
+    }
 
 
     document
-    .getElementById("pagamentoDescricao")
-    .textContent = descricao;
+        .getElementById("pagamentoId")
+        .value = firestoreId;
 
 
     document
-    .getElementById("pagamentoValor")
-    .textContent =
-    formatarEuro(valor);
+        .getElementById("pagamentoDescricao")
+        .textContent = descricao;
 
 
     document
-    .getElementById("dataPagamento")
-    .value =
-    new Date()
-    .toISOString()
-    .split("T")[0];
+        .getElementById("pagamentoValor")
+        .textContent =
+        formatarEuro(valor);
 
 
     document
-    .getElementById("origemPagamento")
-    .value = "";
+        .getElementById("dataPagamento")
+        .value =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+
+    document
+        .getElementById("origemPagamento")
+        .value = "";
 
 
     const modal =
-    document.getElementById(
-        "modalPagamento"
-    );
+        document.getElementById(
+            "modalPagamento"
+        );
 
 
-    if(!modal){
+    if (!modal) {
 
         alert(
             "A janela de pagamento não foi encontrada na página."
@@ -1570,19 +1775,29 @@ function abrirModalPagamento(botao){
     }
 
 
-    modal
-    .classList
-    .add("aberto");
+    modal.classList.add("aberto");
 
 }
 
 
-function fecharModalPagamento(){
+/* =========================================
+   FECHAR MODAL
+========================================= */
 
-    document
-    .getElementById("modalPagamento")
-    .classList
-    .remove("aberto");
+function fecharModalPagamento() {
+
+    const modal =
+        document.getElementById(
+            "modalPagamento"
+        );
+
+
+    if (!modal) return;
+
+
+    modal.classList.remove(
+        "aberto"
+    );
 
 }
 
@@ -1591,27 +1806,31 @@ function fecharModalPagamento(){
    CONFIRMAR PAGAMENTO DO CARTÃO
 ========================================= */
 
-async function confirmarPagamentoCartao(){
+async function confirmarPagamentoCartao() {
 
-    const id =
-    document
-    .getElementById("pagamentoId")
-    .value;
+    /*
+     * Este valor agora é SEMPRE o firestoreId.
+     */
+
+    const firestoreId =
+        document
+            .getElementById("pagamentoId")
+            .value;
 
 
     const dataPagamento =
-    document
-    .getElementById("dataPagamento")
-    .value;
+        document
+            .getElementById("dataPagamento")
+            .value;
 
 
     const origemPagamento =
-    document
-    .getElementById("origemPagamento")
-    .value;
+        document
+            .getElementById("origemPagamento")
+            .value;
 
 
-    if(!id){
+    if (!firestoreId) {
 
         alert(
             "Não foi possível identificar a despesa."
@@ -1622,7 +1841,38 @@ async function confirmarPagamentoCartao(){
     }
 
 
-    if(!dataPagamento){
+    /*
+     * Confere se a despesa existe
+     * na lista carregada.
+     */
+
+    const item =
+        despesas.find(
+            (despesa) =>
+                String(
+                    despesa.firestoreId
+                ) ===
+                String(firestoreId)
+        );
+
+
+    if (!item) {
+
+        alert(
+            "A despesa não foi encontrada. Atualize a página e tente novamente."
+        );
+
+        console.error(
+            "firestoreId não encontrado:",
+            firestoreId
+        );
+
+        return;
+
+    }
+
+
+    if (!dataPagamento) {
 
         alert(
             "Informe a data do pagamento."
@@ -1633,7 +1883,7 @@ async function confirmarPagamentoCartao(){
     }
 
 
-    if(!origemPagamento){
+    if (!origemPagamento) {
 
         alert(
             "Informe de onde saiu o dinheiro."
@@ -1644,19 +1894,37 @@ async function confirmarPagamentoCartao(){
     }
 
 
-    try{
+    try {
+
+        /*
+         * ATENÇÃO:
+         *
+         * Aqui NÃO usamos item.id.
+         *
+         * Usamos exclusivamente:
+         *
+         * firestoreId
+         */
 
         await updateDoc(
-            doc(db,"despesas",id),
+            doc(
+                db,
+                "despesas",
+                firestoreId
+            ),
             {
 
-                status:"Pago",
+                status: "Pago",
 
-                statusCartao:"Pago",
+                statusCartao: "Pago",
 
-                dataPagamento,
+                dataPagamento:
 
-                origemPagamento
+                    dataPagamento,
+
+                origemPagamento:
+
+                    origemPagamento
 
             }
         );
@@ -1670,12 +1938,13 @@ async function confirmarPagamentoCartao(){
         );
 
 
-    }catch(error){
+    } catch (error) {
 
         console.error(
-            "ERRO AO REGISTAR PAGAMENTO:",
+            "ERRO AO DAR BAIXA:",
             error
         );
+
 
         alert(
             "Não foi possível registar o pagamento."
@@ -1690,54 +1959,87 @@ async function confirmarPagamentoCartao(){
    MARCAR DESPESA NORMAL COMO PAGA
 ========================================= */
 
-async function marcarDespesaPaga(id){
+async function marcarDespesaPaga(
+    firestoreId
+) {
 
-    if(
-        !confirm(
-            "Confirmar que esta despesa foi paga?"
-        )
-    ){
+    if (!firestoreId) {
+
+        alert(
+            "Não foi possível identificar a despesa."
+        );
 
         return;
 
     }
 
 
-    try{
-
-        const hoje =
-        new Date()
-        .toISOString()
-        .split("T")[0];
-
-
-        const item =
+    const item =
         despesas.find(
-            item =>
-            String(item.id) === String(id)
+            (despesa) =>
+                String(
+                    despesa.firestoreId
+                ) ===
+                String(firestoreId)
         );
 
 
+    if (!item) {
+
+        alert(
+            "A despesa não foi encontrada. Atualize a página e tente novamente."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        !confirm(
+            "Confirmar que esta despesa foi paga?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const hoje =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+
         await updateDoc(
-            doc(db,"despesas",id),
+            doc(
+                db,
+                "despesas",
+                firestoreId
+            ),
             {
 
-                status:"Pago",
+                status: "Pago",
 
-                dataPagamento:hoje,
+                dataPagamento: hoje,
 
                 origemPagamento:
-                (
-                    item?.origem || ""
-                )
+                    item.origem || ""
 
             }
         );
 
 
-    }catch(error){
+    } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Erro ao marcar despesa como paga:",
+            error
+        );
+
 
         alert(
             "Não foi possível atualizar a despesa."
@@ -1749,43 +2051,83 @@ async function marcarDespesaPaga(id){
 
 
 /* =========================================
-   EXCLUIR
+   EXCLUIR DESPESA
 ========================================= */
 
-async function excluirDespesa(id){
+async function excluirDespesa(
+    firestoreId
+) {
 
-    const item =
-    despesas.find(
-        despesa =>
-        String(despesa.id) === String(id)
-    );
+    if (!firestoreId) {
 
+        alert(
+            "Não foi possível identificar a despesa."
+        );
 
-    if(!item){
         return;
+
     }
 
 
-    if(
+    /*
+     * Procuramos usando firestoreId.
+     */
+
+    const item =
+        despesas.find(
+            (despesa) =>
+                String(
+                    despesa.firestoreId
+                ) ===
+                String(firestoreId)
+        );
+
+
+    if (!item) {
+
+        alert(
+            "A despesa não foi encontrada."
+        );
+
+        return;
+
+    }
+
+
+    if (
         !confirm(
             "Deseja realmente excluir esta despesa?"
         )
-    ){
+    ) {
 
         return;
 
     }
 
 
-    try{
+    try {
+
+        /*
+         * Exclusão usando o ID REAL
+         * do documento Firestore.
+         */
 
         await deleteDoc(
-            doc(db,"despesas",id)
+            doc(
+                db,
+                "despesas",
+                firestoreId
+            )
         );
 
-    }catch(error){
 
-        console.error(error);
+    } catch (error) {
+
+        console.error(
+            "Erro ao excluir despesa:",
+            error
+        );
+
 
         alert(
             "Não foi possível excluir a despesa."
@@ -1800,74 +2142,86 @@ async function excluirDespesa(id){
    ABAS
 ========================================= */
 
-function mudarAba(nome){
+function mudarAba(nome) {
 
     document
-    .querySelectorAll(".aba-conteudo")
-    .forEach(aba=>{
+        .querySelectorAll(".aba-conteudo")
+        .forEach(
+            (aba) => {
 
-        aba.classList.remove("ativo");
+                aba.classList.remove(
+                    "ativo"
+                );
 
-    });
+            }
+        );
 
 
     document
-    .querySelectorAll(".aba-btn")
-    .forEach(botao=>{
+        .querySelectorAll(".aba-btn")
+        .forEach(
+            (botao) => {
 
-        botao.classList.remove("ativo");
+                botao.classList.remove(
+                    "ativo"
+                );
 
-    });
+            }
+        );
 
 
     const aba =
-    document.getElementById(
-        "aba-" + nome
-    );
+        document.getElementById(
+            "aba-" + nome
+        );
 
 
     const botao =
-    document.querySelector(
-        `.aba-btn[data-aba="${nome}"]`
-    );
+        document.querySelector(
+            `.aba-btn[data-aba="${nome}"]`
+        );
 
 
-    if(aba){
+    if (aba) {
 
-        aba.classList.add("ativo");
+        aba.classList.add(
+            "ativo"
+        );
 
     }
 
 
-    if(botao){
+    if (botao) {
 
-        botao.classList.add("ativo");
+        botao.classList.add(
+            "ativo"
+        );
 
     }
 
 }
 
 
-function abrirAbaNovaDespesa(){
+function abrirAbaNovaDespesa() {
 
     mudarAba("nova");
 
 
     const campo =
-    document.getElementById(
-        "dataDespesa"
-    );
+        document.getElementById(
+            "dataDespesa"
+        );
 
 
-    if(
+    if (
         campo &&
         !campo.value
-    ){
+    ) {
 
         campo.value =
-        new Date()
-        .toISOString()
-        .split("T")[0];
+            new Date()
+                .toISOString()
+                .split("T")[0];
 
     }
 
@@ -1878,27 +2232,27 @@ function abrirAbaNovaDespesa(){
    FUNÇÕES AUXILIARES
 ========================================= */
 
-function obterStatus(item){
+function obterStatus(item) {
 
-    if(item.status){
+    if (item.status) {
 
         return item.status;
 
     }
 
 
-    if(
+    if (
         item.statusCartao === "Pago"
-    ){
+    ) {
 
         return "Pago";
 
     }
 
 
-    if(
+    if (
         ehDespesaCartao(item)
-    ){
+    ) {
 
         return "Aberto";
 
@@ -1910,9 +2264,9 @@ function obterStatus(item){
 }
 
 
-function nomeCartao(valor){
+function nomeCartao(valor) {
 
-    if(cartoes[valor]){
+    if (cartoes[valor]) {
 
         return cartoes[valor].nome;
 
@@ -1924,18 +2278,17 @@ function nomeCartao(valor){
 }
 
 
-function obterDataOrdenacao(item){
+function obterDataOrdenacao(item) {
 
     const valor =
-    item.dataDespesa ||
-    item.data ||
-    item.criadoEm ||
-    "";
+        item.dataDespesa ||
+        item.data ||
+        item.criadoEm ||
+        "";
 
 
     const tempo =
-    new Date(valor)
-    .getTime();
+        new Date(valor).getTime();
 
 
     return isNaN(tempo)
@@ -1945,9 +2298,9 @@ function obterDataOrdenacao(item){
 }
 
 
-function formatarData(data){
+function formatarData(data) {
 
-    if(!data){
+    if (!data) {
 
         return "—";
 
@@ -1955,11 +2308,12 @@ function formatarData(data){
 
 
     const partes =
-    String(data)
-    .split("-");
+        String(data).split("-");
 
 
-    if(partes.length === 3){
+    if (
+        partes.length === 3
+    ) {
 
         return (
             partes[2] +
@@ -1977,44 +2331,65 @@ function formatarData(data){
 }
 
 
-function formatarEuro(valor){
+function formatarEuro(valor) {
 
-    return Number(valor || 0)
-    .toLocaleString(
+    return Number(
+        valor || 0
+    ).toLocaleString(
         "pt-PT",
         {
-            style:"currency",
-            currency:"EUR"
+            style: "currency",
+            currency: "EUR"
         }
     );
 
 }
 
 
-function definirTexto(id,texto){
+function definirTexto(
+    id,
+    texto
+) {
 
     const elemento =
-    document.getElementById(id);
+        document.getElementById(id);
 
 
-    if(elemento){
+    if (elemento) {
 
         elemento.textContent =
-        texto;
+            texto;
 
     }
 
 }
 
 
-function escaparHTML(valor){
+function escaparHTML(valor) {
 
-    return String(valor ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+    return String(
+        valor ?? ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
 
@@ -2023,13 +2398,13 @@ function escaparHTML(valor){
    LOGOUT
 ========================================= */
 
-function logout(){
+function logout() {
 
-    if(
+    if (
         !confirm(
             "Deseja realmente sair do sistema?"
         )
-    ){
+    ) {
 
         return;
 
@@ -2042,44 +2417,44 @@ function logout(){
 
 
     window.location.href =
-    "login.html";
+        "login.html";
 
 }
 
 
 /* =========================================
-   DISPONIBILIZAR FUNÇÕES PARA HTML
+   DISPONIBILIZAR FUNÇÕES PARA O HTML
 ========================================= */
 
 window.mudarAba =
-mudarAba;
+    mudarAba;
 
 window.abrirAbaNovaDespesa =
-abrirAbaNovaDespesa;
+    abrirAbaNovaDespesa;
 
 window.filtrarDespesas =
-filtrarDespesas;
+    filtrarDespesas;
 
 window.limparFiltros =
-limparFiltros;
+    limparFiltros;
 
 window.abrirModalPagamento =
-abrirModalPagamento;
+    abrirModalPagamento;
 
 window.fecharModalPagamento =
-fecharModalPagamento;
+    fecharModalPagamento;
 
 window.confirmarPagamentoCartao =
-confirmarPagamentoCartao;
+    confirmarPagamentoCartao;
 
 window.marcarDespesaPaga =
-marcarDespesaPaga;
+    marcarDespesaPaga;
 
 window.excluirDespesa =
-excluirDespesa;
+    excluirDespesa;
 
 window.logout =
-logout;
+    logout;
 
 
 /* =========================================
@@ -2087,17 +2462,17 @@ logout;
 ========================================= */
 
 const dataInicial =
-document.getElementById(
-    "dataDespesa"
-);
+    document.getElementById(
+        "dataDespesa"
+    );
 
 
-if(dataInicial){
+if (dataInicial) {
 
     dataInicial.value =
-    new Date()
-    .toISOString()
-    .split("T")[0];
+        new Date()
+            .toISOString()
+            .split("T")[0];
 
 }
 
