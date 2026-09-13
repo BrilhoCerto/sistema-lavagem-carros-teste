@@ -1,3 +1,13 @@
+import { db } from "./firebase.js";
+
+import {
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
 const perfilDespesa =
 localStorage.getItem("perfil");
 
@@ -7,13 +17,25 @@ window.location.href =
 "login.html";
 
 }
-if(perfil === "funcionario"){
+if(perfilDespesa === "funcionario"){
     window.location.href = "pagamentos.html";
 }
-let despesas =
-JSON.parse(
-localStorage.getItem("despesas")
-) || [];
+let despesas = [];
+
+const despesasRef = collection(db, "despesas");
+
+onSnapshot(despesasRef, (snapshot) => {
+
+    despesas = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+    carregarTabela();
+    atualizarCards();
+    atualizarCartoes();
+
+});
 
 const subcategorias = {
 
@@ -81,6 +103,13 @@ const subcategorias = {
 "Reparação",
 "Peças",
 "Manutenção"
+],
+
+"Cartões":[
+"Cartão Crédito Samuel CCA",
+"Cartão Crédito Samuel Millenium",
+"Cartão Crédito Samuel Cetelem",
+"Cartão Crédito Eliane"
 ],
 
 "Outros":[
@@ -155,7 +184,7 @@ document
 .getElementById("formDespesa")
 .addEventListener(
 "submit",
-function(e){
+async function(e){
 
 e.preventDefault();
 
@@ -199,17 +228,22 @@ parseFloat(
 document.getElementById("valor").value
 ),
 
+tipo:   
+document.getElementById("origem").value === "Cartões"
+? "cartao"
+: "normal",
+
+statusCartao:
+document.getElementById("origem").value === "Cartões"
+? "Aberto"
+: "",
+
 observacoes:
 document.getElementById("observacoes").value
 
 };
 
-despesas.push(novaDespesa);
-
-localStorage.setItem(
-"despesas",
-JSON.stringify(despesas)
-);
+await addDoc(despesasRef, novaDespesa);
 
 document
 .getElementById("formDespesa")
@@ -330,6 +364,82 @@ document
 
 }
 
+function atualizarCartoes(){
+
+let totais = {
+
+cca: 0,
+millenium: 0,
+cetelem: 0,
+eliane: 0
+
+};
+
+despesas.forEach(item => {
+
+if(
+item.origem !== "cartao"
+||
+item.statusCartao === "Pago"
+){
+return;
+}
+
+const valor =
+Number(item.valor || 0);
+
+if(
+item.subcategoria ===
+"Cartão Crédito Samuel CCA"
+){
+totais.cca += valor;
+}
+
+if(
+item.subcategoria ===
+"Cartão Crédito Samuel Millenium"
+){
+totais.millenium += valor;
+}
+
+if(
+item.subcategoria ===
+"Cartão Crédito Samuel Cetelem"
+){
+totais.cetelem += valor;
+}
+
+if(
+item.subcategoria ===
+"Cartão Crédito Eliane"
+){
+totais.eliane += valor;
+}
+
+});
+
+document
+.getElementById("cartaoCCA")
+.textContent =
+"€ " + totais.cca.toFixed(2);
+
+document
+.getElementById("cartaoMillenium")
+.textContent =
+"€ " + totais.millenium.toFixed(2);
+
+document
+.getElementById("cartaoCetelem")
+.textContent =
+"€ " + totais.cetelem.toFixed(2);
+
+document
+.getElementById("cartaoEliane")
+.textContent =
+"€ " + totais.eliane.toFixed(2);
+
+}
+
 /* FILTROS */
 
 function filtrarDespesas(){
@@ -413,25 +523,19 @@ function logout(){
     "login.html";
 
 }
-function excluirDespesa(id){
+async function excluirDespesa(id){
 
-if(!confirm("Deseja excluir esta despesa?")){
-return;
-}
+    if(!confirm("Deseja excluir esta despesa?")){
+        return;
+    }
 
-despesas = despesas.filter(
-item => item.id != id
-);
-
-localStorage.setItem(
-"despesas",
-JSON.stringify(despesas)
-);
-
-carregarTabela();
-atualizarCards();
+    await deleteDoc(
+        doc(db, "despesas", id)
+    );
 
 }
+window.excluirDespesa = excluirDespesa;
+
 /* INICIALIZAÇÃO */
 
 carregarTabela();
