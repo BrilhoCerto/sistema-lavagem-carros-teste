@@ -1089,8 +1089,9 @@ function atualizarApenasPagar(){
                         ?
 
                         `<button
+    type="button"
     class="btn-acao btn-baixa btn-dar-baixa"
-    data-id="${item.id}">
+    onclick="window.abrirModalPagamento('${item.id}')">
 
     Dar baixa
 
