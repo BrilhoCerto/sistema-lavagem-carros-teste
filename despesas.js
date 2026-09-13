@@ -968,13 +968,7 @@ function carregarTabelaCartoes(){
 
             <td>
 
-               <button
-    class="btn-acao btn-baixa btn-dar-baixa"
-    data-id="${item.id}">
-
-    Dar baixa
-
-</button>
+              <button type="button" class="btn-dar-baixa" onclick="window.abrirModalPagamento('${item.id}')">Dar baixa</button>
 
             </td>
 
@@ -2021,6 +2015,9 @@ if(dataInicial){
 }
 
 atualizarTudo();
+
+window.abrirModalPagamento =
+abrirModalPagamento;
 
 window.confirmarPagamentoCartao =
 confirmarPagamentoCartao;
