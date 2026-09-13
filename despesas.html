@@ -73,6 +73,7 @@ onclick="location.href='relatorios.html'">
     🧾 IMO
 </button>
 
+
 <button
 class="menu-btn"
 onclick="logout()">
@@ -143,6 +144,73 @@ id="saldoMes">
 
 </div>
 
+<div class="card-dashboard mb-4">
+
+<h5>💳 Controle de Cartões</h5>
+
+<div class="row">
+
+<div class="col-md-3 mb-3">
+
+<div>Samuel CCA</div>
+
+<div
+class="numero text-danger"
+id="cartaoCCA">
+
+€ 0,00
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div>Samuel Millenium</div>
+
+<div
+class="numero text-danger"
+id="cartaoMillenium">
+
+€ 0,00
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div>Samuel Cetelem</div>
+
+<div
+class="numero text-danger"
+id="cartaoCetelem">
+
+€ 0,00
+
+</div>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<div>Eliane</div>
+
+<div
+class="numero text-danger"
+id="cartaoEliane">
+
+€ 0,00
+
+</div>
+
+</div>
+
+</div>
+
+</div>    
+
+    
 <div class="row">
 
 <div class="col-lg-4">
@@ -172,6 +240,10 @@ Caixa Brilho Certo
 
 <option>
 Caixa IMO Wash Car
+</option>
+
+<option>
+Cartões
 </option>
 
 </select>
@@ -213,6 +285,10 @@ Contas
 Despesas Pessoais
 </option>
 
+<option>
+Cartões
+</option>
+    
 <option>
 Ordenado Diário
 </option>
@@ -403,7 +479,7 @@ Pesquisar
 </div>
 
 <script src="seguranca.js"></script>  
-<script src="despesas.js"></script>
+<script type="module" src="despesas.js"></script>
 
 <script>
 aplicarPermissoesMenu();
