@@ -968,13 +968,13 @@ function carregarTabelaCartoes(){
 
             <td>
 
-                <button
-                    class="btn-acao btn-baixa"
-                    onclick="abrirModalPagamento('${item.id}')">
+               <button
+    class="btn-acao btn-baixa btn-dar-baixa"
+    data-id="${item.id}">
 
-                    Dar baixa
+    Dar baixa
 
-                </button>
+</button>
 
             </td>
 
@@ -1062,12 +1062,14 @@ function atualizarApenasPagar(){
                 </td>
 
                 <td>
-                    ${cartao
-                        ? "Cartão"
-                        : escaparHTML(
-                            item.origem || ""
-                        )}
-                </td>
+    ${cartao
+        ? "Cartão — " + escaparHTML(
+            nomeCartao(item.subcategoria)
+        )
+        : escaparHTML(
+            item.origem || ""
+        )}
+</td>
 
                 <td>
                     <strong>
@@ -1093,12 +1095,12 @@ function atualizarApenasPagar(){
                         ?
 
                         `<button
-                            class="btn-acao btn-baixa"
-                            onclick="abrirModalPagamento('${item.id}')">
+    class="btn-acao btn-baixa btn-dar-baixa"
+    data-id="${item.id}">
 
-                            Dar baixa
+    Dar baixa
 
-                        </button>`
+</button>`
 
                         :
 
@@ -1293,12 +1295,12 @@ function carregarTabela(lista = despesas){
                         ?
 
                         `<button
-                            class="btn-acao btn-baixa"
-                            onclick="abrirModalPagamento('${item.id}')">
+    class="btn-acao btn-baixa btn-dar-baixa"
+    data-id="${item.id}">
 
-                            Dar baixa
+    Dar baixa
 
-                        </button>`
+</button>`
 
                         :
 
@@ -1429,6 +1431,28 @@ function limparFiltros(){
 
 }
 
+/* =========================================
+   BOTÃO DAR BAIXA
+========================================= */
+
+document.addEventListener(
+    "click",
+    function(e){
+
+        const botao =
+        e.target.closest(".btn-dar-baixa");
+
+        if(!botao){
+            return;
+        }
+
+        const id =
+        botao.dataset.id;
+
+        abrirModalPagamento(id);
+
+    }
+);
 
 /* =========================================
    DAR BAIXA NO CARTÃO
