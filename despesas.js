@@ -635,6 +635,7 @@ function atualizarVisao(){
 
     const categorias = {};
 
+
     despesas.forEach(item=>{
 
         const categoria =
@@ -795,12 +796,15 @@ function atualizarCartoes(){
             return;
         }
 
+
         if(obterStatus(item) === "Pago"){
             return;
         }
 
+
         const cartao =
         item.subcategoria;
+
 
         if(
             Object.prototype
@@ -968,7 +972,14 @@ function carregarTabelaCartoes(){
 
             <td>
 
-              <button type="button" class="btn-dar-baixa" onclick="window.abrirModalPagamento('${item.id}')">Dar baixa</button>
+                <button
+                    type="button"
+                    class="btn-acao btn-baixa btn-dar-baixa"
+                    onclick="window.abrirModalPagamento('${item.id}')">
+
+                    Dar baixa
+
+                </button>
 
             </td>
 
@@ -1056,14 +1067,19 @@ function atualizarApenasPagar(){
                 </td>
 
                 <td>
-    ${cartao
-        ? "Cartão — " + escaparHTML(
-            nomeCartao(item.subcategoria)
-        )
-        : escaparHTML(
-            item.origem || ""
-        )}
-</td>
+
+                    ${cartao
+                        ? "Cartão — " +
+                          escaparHTML(
+                              nomeCartao(
+                                  item.subcategoria
+                              )
+                          )
+                        : escaparHTML(
+                            item.origem || ""
+                          )}
+
+                </td>
 
                 <td>
                     <strong>
@@ -1074,11 +1090,15 @@ function atualizarApenasPagar(){
                 </td>
 
                 <td>
+
                     <span class="status status-aberto">
+
                         ⏳ ${cartao
                             ? "Cartão em aberto"
                             : "A pagar"}
+
                     </span>
+
                 </td>
 
                 <td>
@@ -1089,19 +1109,20 @@ function atualizarApenasPagar(){
                         ?
 
                         `<button
-    type="button"
-    class="btn-acao btn-baixa btn-dar-baixa"
-    onclick="window.abrirModalPagamento('${item.id}')">
+                            type="button"
+                            class="btn-acao btn-baixa btn-dar-baixa"
+                            onclick="window.abrirModalPagamento('${item.id}')">
 
-    Dar baixa
+                            Dar baixa
 
-</button>`
+                        </button>`
 
                         :
 
                         `<button
+                            type="button"
                             class="btn-acao btn-baixa"
-                            onclick="marcarDespesaPaga('${item.id}')">
+                            onclick="window.marcarDespesaPaga('${item.id}')">
 
                             Marcar como paga
 
@@ -1273,7 +1294,7 @@ function carregarTabela(lista = despesas){
                             (
                                 item.origemPagamento
                                 ? " • " +
-                                item.origemPagamento
+                                  item.origemPagamento
                                 : ""
                             )
                           )
@@ -1290,18 +1311,20 @@ function carregarTabela(lista = despesas){
                         ?
 
                         `<button
-    class="btn-acao btn-baixa btn-dar-baixa"
-    data-id="${item.id}">
+                            type="button"
+                            class="btn-acao btn-baixa btn-dar-baixa"
+                            onclick="window.abrirModalPagamento('${item.id}')">
 
-    Dar baixa
+                            Dar baixa
 
-</button>`
+                        </button>`
 
                         :
 
                         `<button
+                            type="button"
                             class="btn-acao btn-excluir"
-                            onclick="excluirDespesa('${item.id}')">
+                            onclick="window.excluirDespesa('${item.id}')">
 
                             Excluir
 
@@ -1436,12 +1459,18 @@ function abrirModalPagamento(id){
     const item =
     despesas.find(
         despesa =>
-        despesa.id === id
+        String(despesa.id) === String(id)
     );
 
 
     if(!item){
+
+        alert(
+            "Não foi possível localizar esta despesa."
+        );
+
         return;
+
     }
 
 
@@ -1616,7 +1645,8 @@ async function marcarDespesaPaga(id){
                 origemPagamento:
                 (
                     despesas.find(
-                        item=>item.id === id
+                        item=>
+                        String(item.id) === String(id)
                     )?.origem || ""
                 )
 
@@ -1646,7 +1676,7 @@ async function excluirDespesa(id){
     const item =
     despesas.find(
         despesa =>
-        despesa.id === id
+        String(despesa.id) === String(id)
     );
 
 
@@ -1974,13 +2004,3 @@ if(dataInicial){
 }
 
 atualizarTudo();
-
-window.abrirModalPagamento =
-abrirModalPagamento;
-
-window.confirmarPagamentoCartao =
-confirmarPagamentoCartao;
-
-window.fecharModalPagamento =
-fecharModalPagamento;
-
